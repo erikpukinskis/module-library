@@ -1,6 +1,7 @@
 {
-  "dependencies": {
-    "chai": "*"
+  "devDependencies": {
+    "chai": "*",
+    "async": "*"
   },
   "scripts": {
     "test": "node narrative.js"

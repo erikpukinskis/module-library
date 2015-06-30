@@ -1,6 +1,8 @@
 ///////////////////////////////////////
 // BOILERPLATE
-function runTheTest(setup, description, test, chai, async) {
+var requirejs = require("requirejs")
+
+function runTheTest(setup, description, test, chai) {
   var expect = chai.expect
 
   if (!test) {
@@ -23,19 +25,16 @@ function runTheTest(setup, description, test, chai, async) {
 
   var runTest = test.bind(null, chai.expect)
 
-  if (setup) {
-    async.series(
-      [setup, runTest, done]
-    )
-  } else {
-    async.series([runTest, done])
-  }
+  var runAndDone = runTest.bind(null, done)
+
+  if (setup) { setup(runAndDone) }
+  else { runAndDone() }
 }
 
 function test(setup, description, runTest) {
 
-  require("requirejs")(
-    ["chai", "async"],
+  requirejs(
+    ["chai"],
     runTheTest.bind(null, setup, description, runTest)
   )
 }
@@ -100,7 +99,14 @@ function addDefiningModules(done) {
 
   SingletonStore.prototype.get =
     function(name) {
-      return this.singletons[name] || this.modules[name]()
+      var singleton = this.singletons[name]
+
+      if (typeof singleton == "undefined") {
+        singleton = this.modules[name]()
+        this.singletons[name] = singleton
+      }
+
+      return singleton
     }
 
   Library.SingletonStore = SingletonStore
@@ -138,28 +144,32 @@ function addDefiningModules(done) {
 
 
 /////////////////////////////////////
+test(
+  "Don't run the generator every time",
+
+  function(expect, done) {
+    var library = new Library()
+    var count = 0
+
+    library.define("foo", 
+      function() { return count++ }
+    )
+
+    library.using(["foo"], 
+      function() {}
+    )
+
+    library.using(["foo"],
+      function() {}
+    )
+
+    expect(count).to.equal(1)
+    done()
+  }
+)
+
+
+
+
 // test(
-//   "Don't run the generator every time",
-
-//   function(expect, done) {
-//     var library = new Library()
-//     var count = 0
-
-//     library.define("foo", 
-//       function() { return count++ }
-//     )
-
-//     library.using(["foo"], 
-//       function() {}
-//     )
-
-//     library.using(["foo"],
-//       function() {}
-//     )
-
-//     expect(count).to.equal(1)
-//   }
-// )
-
-
-
+//   "collect"

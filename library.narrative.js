@@ -94,6 +94,7 @@ test(
 
 
 
+
 /////////////////////////////////////
 function LibrariesDefineModules(done) {
 
@@ -124,7 +125,6 @@ function LibrariesDefineModules(done) {
 
   Library.SingletonStore = SingletonStore
 
-
   Library.prototype.define =
     function(name, two, three) {
       if (three) {
@@ -144,10 +144,15 @@ function LibrariesDefineModules(done) {
   Library.prototype.using =
     function(dependencies, func) {
       var singletons = []
-
       for(var i=0; i<dependencies.length; i++) {
 
-        var singleton = this.singletons.get(dependencies[i])
+        var dependency = dependencies[i]
+
+        if (dependency.call) {
+          var singleton = dependency()
+        } else {
+          var singleton = this.singletons.get(dependency)
+        }
 
         singletons.push(singleton)
       }
@@ -157,10 +162,6 @@ function LibrariesDefineModules(done) {
 
   done()
 }
-
-
-
-
 
 
 
@@ -226,6 +227,28 @@ test(
   }
 )
 
+
+
+
+/////////////////////////////////////
+test(
+  "Dependencies can be functions",
+
+  function(expect, done) {
+    var library = new Library()
+
+    library.using(
+      [function() { 
+        return "the Tappet Brothers!"
+      }],
+      function(clickAndClack) {
+        expect(clickAndClack).to.equal("the Tappet Brothers!")
+        done()
+      }
+    )
+
+  }
+)
 
 
 
@@ -295,7 +318,9 @@ test(
 
 function ModulesHaveCollectives(done) {
   Library.prototype.collective =
-    function() {}
+    function() {
+      return {collective: true}
+    }
 
   function SingletonFrameStore() {
   }

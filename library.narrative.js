@@ -26,9 +26,7 @@ function runTheTest(setup, description, test, chai) {
   var runTest = test.bind(null, chai.expect)
 
   var runAndDone = runTest.bind(null, done)
-  console.log("setup?", !!setup)
   if (setup) { 
-    console.log("yu")
     setup(runAndDone)
   } else { runAndDone() }
 }
@@ -58,7 +56,7 @@ function test(setup, description, runTest) {
 
 function Library() {
   if (!Library.SingletonStore.prototype.set) {
-    throw new Error("The singleton store below needs a set(name, function) method:\n"+Library.SingletonStore)
+    throw new Error("The singleton store below needs a set(name, func) method:\n"+Library.SingletonStore)
   } else if (!Library.SingletonStore.prototype.get) {
     throw new Error("The singleton store below needs a get(name) method:\n"+Library.SingletonStore)
   }
@@ -118,6 +116,9 @@ function LibrariesDefineModules(done) {
 
   SingletonStore.prototype.set =
     function(name, func) {
+      if (!func.call) {
+        throw new Error("Can't define "+name+" as "+JSON.stringify(func)+" cuz it's not a function")
+      }
       this.modules[name] = func
     }
 
@@ -125,8 +126,18 @@ function LibrariesDefineModules(done) {
 
 
   Library.prototype.define =
-    function(name, func) {
-      this.singletons.set(name, func)
+    function(name, two, three) {
+      if (three) {
+        var func = three
+        var dependencies = two
+      } else {
+        var func = two
+        var dependencies = []
+      }
+
+      var generator = this.using.bind(this, dependencies, func)
+
+      this.singletons.set(name, generator)
     }
 
 
@@ -141,7 +152,7 @@ function LibrariesDefineModules(done) {
         singletons.push(singleton)
       }
 
-      func.apply(null, singletons)
+      return func.apply(null, singletons)
     }
 
   done()
@@ -186,16 +197,50 @@ test(
 
 ///////////////////////////////////////
 test(
+  "Definitions can have dependencies",
+
+  function(expect, done) {
+    var library = new Library()
+    var count = 0
+
+    library.define("turtle", 
+      function() {
+        return "in the sun"
+      }
+    )
+
+    library.define(
+      "rider",
+      ["turtle"],
+      function(turtle) {
+        return "rider rides " + turtle
+      }
+    )
+
+    library.using(["rider"], 
+      function(rider) {
+        expect(rider).to.equal("rider rides in the sun")
+        done()
+      }
+    )
+  }
+)
+
+
+
+
+///////////////////////////////////////
+test(
   ModulesHaveCollectives,
   "modules have collective objects that can be reset by the user",
 
   function(expect, done) {
-    console.log("feeslie")
+    console.log("testing modules have collectives")
     var library = new Library()
 
     library.define(
       "bird",
-      library.collective({nests: []}),
+      [library.collective({nests: []})],
       function(collective) {
         function Bird(nest) {
           collective.nests.push(nest)
@@ -258,6 +303,11 @@ function ModulesHaveCollectives(done) {
   SingletonFrameStore.prototype.get =
     function(name) {
       console.log("gittin", name)
+    }
+
+  SingletonFrameStore.prototype.set =
+    function(name, func) {
+      console.log("sittin", name, func)
     }
 
   Library.SingletonStore = SingletonFrameStore

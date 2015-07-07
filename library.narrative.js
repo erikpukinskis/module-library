@@ -1,8 +1,8 @@
 ///////////////////////////////////////
 // BOILERPLATE
-var requirejs = require("requirejs")
+var chai = require("chai")
 
-function runTheTest(setup, description, test, chai) {
+function test(setup, description, test) {
   var expect = chai.expect
 
   if (!test) {
@@ -31,13 +31,6 @@ function runTheTest(setup, description, test, chai) {
   } else { runAndDone() }
 }
 
-function test(setup, description, runTest) {
-
-  requirejs(
-    ["chai"],
-    runTheTest.bind(null, setup, description, runTest)
-  )
-}
 //                   END OF BOILERPLATE
 ///////////////////////////////////////
 
@@ -55,8 +48,8 @@ function test(setup, description, runTest) {
 // Calls modules and orchestrates dependencies between them
 
 function Library() {
-  if (!Library.SingletonStore.prototype.set) {
-    throw new Error("The singleton store below needs a set(name, func) method:\n"+Library.SingletonStore)
+  if (!Library.SingletonStore.prototype.describe) {
+    throw new Error("The singleton store below needs a describe(name, func) method:\n"+Library.SingletonStore)
   } else if (!Library.SingletonStore.prototype.get) {
     throw new Error("The singleton store below needs a get(name) method:\n"+Library.SingletonStore)
   }
@@ -115,7 +108,7 @@ function LibrariesDefineModules(done) {
       return singleton
     }
 
-  SingletonStore.prototype.set =
+  SingletonStore.prototype.describe =
     function(name, func) {
       if (!func.call) {
         throw new Error("Can't define "+name+" as "+JSON.stringify(func)+" cuz it's not a function")
@@ -137,7 +130,7 @@ function LibrariesDefineModules(done) {
 
       var generator = this.using.bind(this, dependencies, func)
 
-      this.singletons.set(name, generator)
+      this.singletons.describe(name, generator)
     }
 
 
@@ -255,10 +248,40 @@ test(
 ///////////////////////////////////////
 test(
   ModulesHaveCollectives,
-  "modules have collective objects that can be reset by the user",
+  "modules have collective objects",
+  function(expect, done) {
+    var library = new Library()
+
+    library.define(
+      "fish",
+      [
+        library.collective({
+          flights: []
+        })
+      ],
+      function(collective) {
+        expect(collective.flights).to.be.empty
+        done()
+      }
+    )
+
+    library.using(
+      ["fish"],
+      function(fish) {}
+    )
+
+  }
+)
+
+
+
+
+///////////////////////////////////////
+test(
+  "collectives can be reset by the user",
 
   function(expect, done) {
-    console.log("testing modules have collectives")
+    console.log("noooooooooo")
     var library = new Library()
 
     library.define(
@@ -317,25 +340,20 @@ test(
 )
 
 function ModulesHaveCollectives(done) {
+  var SingletonFrame = require("nrtv-singleton-frame")
+
   Library.prototype.collective =
-    function() {
-      return {collective: true}
+    function(object) {
+      return function() {
+        var clone = {}
+        for (var key in object) {
+          clone[key] = object[key]
+        }
+        return clone
+      }
     }
 
-  function SingletonFrameStore() {
-  }
-
-  SingletonFrameStore.prototype.get =
-    function(name) {
-      console.log("gittin", name)
-    }
-
-  SingletonFrameStore.prototype.set =
-    function(name, func) {
-      console.log("sittin", name, func)
-    }
-
-  Library.SingletonStore = SingletonFrameStore
+  Library.SingletonStore = SingletonFrame
 
   done()
 }

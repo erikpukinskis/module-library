@@ -4,6 +4,6 @@
     "requirejs": "*"
   },
   "scripts": {
-    "test": "node narrative.js"
+    "test": "node library.narrative.js"
   }
 }

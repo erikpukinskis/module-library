@@ -136,12 +136,19 @@ function LibrariesDefineModules(done) {
 
   Library.prototype.using =
     function(dependencies, func) {
+      if (this.beforeUsing) {
+        dependencies = this.beforeUsing(dependencies)
+      }
+
       var singletons = []
+
       for(var i=0; i<dependencies.length; i++) {
 
         var dependency = dependencies[i]
 
-        if (dependency.call) {
+        if (typeof dependency == "undefined") {
+          throw new Error("Dependency #"+i+" of "+JSON.stringify(dependencies)+" passed to library.using is undefined")
+        } else if (dependency.call) {
           var singleton = dependency()
         } else {
           var singleton = this.singletons.get(dependency)
@@ -273,15 +280,36 @@ test(
   }
 )
 
+function ModulesHaveCollectives(done) {
+  var SingletonFrame = require("nrtv-singleton-frame")
+
+  Library.prototype.collective =
+    function(object) {
+      return function() {
+        var clone = {}
+        for (var key in object) {
+          clone[key] = object[key]
+        }
+        return clone
+      }
+    }
+
+  Library.SingletonStore = SingletonFrame
+
+  done()
+}
+
+
+
 
 
 
 ///////////////////////////////////////
 test(
+  LibraryResetsSingletons,
   "collectives can be reset by the user",
 
   function(expect, done) {
-    console.log("noooooooooo")
     var library = new Library()
 
     library.define(
@@ -290,6 +318,9 @@ test(
       function(collective) {
         function Bird(nest) {
           collective.nests.push(nest)
+        }
+        Bird.getNests = function() {
+          return collective.nests
         }
         return Bird
       }
@@ -320,7 +351,7 @@ test(
     )
 
     library.using(
-      [collective.reset("bird")],
+      [library.reset("bird")],
       function(Bird) {
         console.log("birdering!")
         var hummingbird =
@@ -339,21 +370,61 @@ test(
   }
 )
 
-function ModulesHaveCollectives(done) {
-  var SingletonFrame = require("nrtv-singleton-frame")
 
-  Library.prototype.collective =
-    function(object) {
-      return function() {
-        var clone = {}
-        for (var key in object) {
-          clone[key] = object[key]
-        }
-        return clone
-      }
+function LibraryResetsSingletons(done) {
+  require("array.prototype.find")
+  var ramda = require("ramda")
+  var find = ramda.contains
+
+  Library.prototype.reset =
+    function(name) {
+
+      // get all the resets in a using, then search the dep tree for any other deps that use them, reset all of those in the singleton frame and then go.
+
+      return {reset: name}
     }
 
-  Library.SingletonStore = SingletonFrame
+  Library.prototype.beforeUsing =
+    function(dependencies) {
+      var resets = []
+
+      for(var i=0; i<dependencies.length; i++) {
+
+        var dependency = dependencies[i]
+
+        var name = dependency.reset
+
+        if (name) {
+          resets.push(name)
+          dependencies[i] = name
+        }
+      }
+
+      var didResetSome = resets.length
+
+      while (didResetSome) {
+        didResetSome = find(areMoreToReset.bind(null, dependencies, resets))(dependencies)
+      }
+
+      return dependencies
+
+    }
+
+  function areMoreToReset(dependencies, resets, dependency) {
+
+    var alreadyReset = contains(dependency)(resets)
+
+    if (!alreadyReset && dependsOn(dependency, resets)) {
+
+      resets.push(dependency)
+      return true
+    }
+  }
+
 
   done()
 }
+
+
+
+

@@ -1,14 +1,24 @@
 {
+  "name": "nrtv-library",
+  "version": "0.0.0",
+  "description": "Calls modules and orchestrates dependencies between them",
+  "main": "library.narrative.js",
   "dependencies": {
     "nrtv-singleton-frame": "*",
     "ramda": "*",
     "clone": "*"
   },
+  "scripts": {
+    "test": "node library.narrative.js --test"
+  },
   "devDependencies": {
     "chai": "*",
     "requirejs": "*"
   },
-  "scripts": {
-    "test": "node library.narrative.js"
+  "license": "ISC",
+  "homepage": "https://github.com/erikpukinskis/nrtv-library",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/erikpukinskis/nrtv-library.git"
   }
 }

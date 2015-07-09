@@ -3,13 +3,18 @@
 var chai = require("chai")
 
 function test(setup, description, test) {
-  var expect = chai.expect
-
   if (!test) {
     test = description
     description = setup
     setup = undefined
   }
+
+  if (process.argv[2] != "--test") {
+    setup && setup(function() {})
+    return
+  }
+
+  var expect = chai.expect
 
   var timer = setTimeout(
     function() {
@@ -58,7 +63,6 @@ function Library() {
   }
   this.singletons = new Library.SingletonStore()
 }
-
 
 
 
@@ -428,3 +432,16 @@ function LibraryResetsSingletons(done) {
 
 
 
+///////////////////////////////////////
+test(
+  "dependencies of dependencies get reset too",
+
+  function(done) { throw "bang" }
+)
+
+
+
+var library = new Library()
+library.Library = Library
+
+module.exports = library

@@ -344,35 +344,35 @@ test(
       }
     )
 
-    var halfDone = false
     library.using(
       ["bird"],
-      function(Bird) {
-        var burrowingOwl =
-          new Bird("occupied burrow")
-
-        var burrows = Bird.getNests()
-        expect(burrows).to.have.members(["burrow", "occupied burrow"])
-        if (halfDone) { done() }
-        halfDone = true
-      }
+      makeAnotherBurrow
     )
 
-    library.using(
-      [library.reset("bird")],
-      function(Bird) {
+    function makeAnotherBurrow(Bird) {
+      var burrowingOwl =
+        new Bird("occupied burrow")
 
-        var hummingbird =
-          new Bird("supported cupped")
-        var swift =
-          new Bird("adherent")
+      var burrows = Bird.getNests()
+      expect(burrows).to.have.members(["burrow", "occupied burrow"])
 
-        var cuppedNests = Bird.getNests()
-        expect(cuppedNests).to.have.members(["supported cupped", "adherent"])
-        if (halfDone) { done() }
-        halfDone = true
-      }
-    )
+      library.using(
+        [library.reset("bird")],
+        makeCuppedNests
+      )
+    }
+
+    function makeCuppedNests(Bird) {
+      var hummingbird =
+        new Bird("supported cupped")
+      var swift =
+        new Bird("adherent")
+
+      var cuppedNests = Bird.getNests()
+      expect(cuppedNests).to.have.members(["supported cupped", "adherent"])
+
+      done()
+    }
   }
 )
 

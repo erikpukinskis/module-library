@@ -26,9 +26,12 @@ function test(setup, description, test) {
   var runTest = test.bind(null, chai.expect)
 
   var runAndDone = runTest.bind(null, done)
-  if (setup) { 
+
+  if (setup) {
     setup(runAndDone)
-  } else { runAndDone() }
+  } else {
+    runAndDone()
+  }
 }
 
 //                   END OF BOILERPLATE
@@ -136,8 +139,14 @@ function LibrariesDefineModules(done) {
 
   Library.prototype.using =
     function(dependencies, func) {
+      var using = {dependencies: dependencies}
+
       if (this.beforeUsing) {
-        dependencies = this.beforeUsing(dependencies)
+        this.beforeUsing(using)
+        dependencies = using.dependencies
+        var singletonFrame = using.singletons
+      } else {
+        singletonFrame = this.singletons
       }
 
       var singletons = []
@@ -151,7 +160,7 @@ function LibrariesDefineModules(done) {
         } else if (dependency.call) {
           var singleton = dependency()
         } else {
-          var singleton = this.singletons.get(dependency)
+          var singleton = singletonFrame.get(dependency)
         }
 
         singletons.push(singleton)
@@ -281,16 +290,13 @@ test(
 )
 
 function ModulesHaveCollectives(done) {
+  var clone = require("clone")
   var SingletonFrame = require("nrtv-singleton-frame")
 
   Library.prototype.collective =
     function(object) {
       return function() {
-        var clone = {}
-        for (var key in object) {
-          clone[key] = object[key]
-        }
-        return clone
+        return clone(object)
       }
     }
 
@@ -314,7 +320,7 @@ test(
 
     library.define(
       "bird",
-      [library.collective({nests: []})],
+      [library.collective({nests: [], orig: true})],
       function(collective) {
         function Bird(nest) {
           collective.nests.push(nest)
@@ -334,12 +340,10 @@ test(
       }
     )
 
-    console.log("not half done even")
     var halfDone = false
     library.using(
       ["bird"],
       function(Bird) {
-        console.log("birding!")
         var burrowingOwl =
           new Bird("occupied burrow")
 
@@ -353,20 +357,18 @@ test(
     library.using(
       [library.reset("bird")],
       function(Bird) {
-        console.log("birdering!")
+
         var hummingbird =
           new Bird("supported cupped")
         var swift =
           new Bird("adherent")
 
         var cuppedNests = Bird.getNests()
-        expect().to.have.members(["supported cupped", "adherent"])
+        expect(cuppedNests).to.have.members(["supported cupped", "adherent"])
         if (halfDone) { done() }
         halfDone = true
       }
     )
-
-    done()
   }
 )
 
@@ -374,48 +376,47 @@ test(
 function LibraryResetsSingletons(done) {
   require("array.prototype.find")
   var ramda = require("ramda")
-  var find = ramda.contains
+  var find = ramda.find
+  var contains = ramda.contains
 
   Library.prototype.reset =
     function(name) {
-
-      // get all the resets in a using, then search the dep tree for any other deps that use them, reset all of those in the singleton frame and then go.
-
       return {reset: name}
     }
 
+  // Before we start using, we search the dependency tree for each dependency to see if any of *them* need to be reset. And then keep repeating that when we find a new thing to reset until we're done.
+
   Library.prototype.beforeUsing =
-    function(dependencies) {
+    function(using) {
       var resets = []
 
-      for(var i=0; i<dependencies.length; i++) {
+      for(var i=0; i<using.dependencies.length; i++) {
 
-        var dependency = dependencies[i]
+        var dependency = using.dependencies[i]
 
         var name = dependency.reset
 
         if (name) {
           resets.push(name)
-          dependencies[i] = name
+          using.dependencies[i] = name
         }
       }
 
-      var didResetSome = resets.length
+      var didResetOne = resets.length > 0
+      var anotherToReset = alsoNeedsResetting.bind(null, resets)
 
-      while (didResetSome) {
-        didResetSome = find(areMoreToReset.bind(null, dependencies, resets))(dependencies)
+      while (didResetOne) {
+        didResetOne = find(anotherToReset)(using.dependencies)
       }
-
-      return dependencies
-
+      
+      using.singletons = this.singletons.reset(resets)
     }
 
-  function areMoreToReset(dependencies, resets, dependency) {
+  function alsoNeedsResetting(resets, dependency) {
 
     var alreadyReset = contains(dependency)(resets)
 
     if (!alreadyReset && dependsOn(dependency, resets)) {
-
       resets.push(dependency)
       return true
     }
@@ -424,7 +425,6 @@ function LibraryResetsSingletons(done) {
 
   done()
 }
-
 
 
 

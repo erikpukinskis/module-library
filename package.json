@@ -1,7 +1,8 @@
 {
   "dependencies": {
     "nrtv-singleton-frame": "*",
-    "ramda": "*"
+    "ramda": "*",
+    "clone": "*"
   },
   "devDependencies": {
     "chai": "*",

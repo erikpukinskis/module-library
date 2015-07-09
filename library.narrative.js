@@ -18,7 +18,11 @@ function test(setup, description, test) {
 
   var timer = setTimeout(
     function() {
-      throw new Error("Got stuck in test \""+description+"\":\n"+runTest+"\n... or or setup:\n"+setup)
+      var message = "Got stuck in test \""+description+"\":\n"+runTest
+      if (setup) {
+        message += "\n... or or setup:\n"+setup
+      }
+      throw new Error(message)
     },
     1000
   )
@@ -62,6 +66,7 @@ function Library() {
     throw new Error("The singleton store below needs a get(name) method:\n"+Library.SingletonStore)
   }
   this.singletons = new Library.SingletonStore()
+  this.dependencies = {}
 }
 
 
@@ -134,6 +139,8 @@ function LibrariesDefineModules(done) {
         var func = two
         var dependencies = []
       }
+
+      this.dependencies[name] = dependencies
 
       var generator = this.using.bind(this, dependencies, func)
 
@@ -407,7 +414,7 @@ function LibraryResetsSingletons(done) {
       }
 
       var didResetOne = resets.length > 0
-      var anotherToReset = alsoNeedsResetting.bind(null, resets)
+      var anotherToReset = alsoNeedsResetting.bind(null, this.dependencies, resets)
 
       while (didResetOne) {
         didResetOne = find(anotherToReset)(using.dependencies)
@@ -416,14 +423,31 @@ function LibraryResetsSingletons(done) {
       using.singletons = this.singletons.reset(resets)
     }
 
-  function alsoNeedsResetting(resets, dependency) {
+  function alsoNeedsResetting(dependencies, resets, dependency) {
 
     var alreadyReset = contains(dependency)(resets)
 
-    if (!alreadyReset && dependsOn(dependency, resets)) {
+    if (!alreadyReset && dependsOn.bind(null, dependencies)(dependency, resets)) {
       resets.push(dependency)
       return true
     }
+  }
+
+  function dependsOn(dependencies, target, possibleDeps) {
+
+    if (typeof target == "function") {
+      return false
+    }
+
+    dependencies[target].forEach(function(dependency) {
+
+      if (dependsOn(dependencies, dependency, possibleDeps)) {
+
+        return true
+      }
+    })
+
+    return false
   }
 
 
@@ -436,7 +460,53 @@ function LibraryResetsSingletons(done) {
 test(
   "dependencies of dependencies get reset too",
 
-  function(done) { throw "bang" }
+  function(expect, done) {
+    var library = new Library()
+
+    library.define(
+      "walk",
+      [library.collective(
+        {cityStreets: 0})
+      ],
+      function(collective) {
+        return function() {
+          collective.cityStreets++
+
+          return "I walked "+collective.cityStreets+" streets alone"
+        }
+      }
+    )
+
+    library.define(
+      "tonight",
+      ["walk"],
+      function(walk) {
+        return function() {
+          walk()
+        }
+      }
+    )
+
+    library.using(
+      ["walk"],
+      function(walk) {
+        walk()
+      }
+    )
+
+    library.using(
+      [
+        library.reset("walk"),
+        "tonight"
+      ],
+      function(walk, tonight) {
+        tonight()
+        var walks = walk()
+        expect(walks).to.equal("I walked 2 streets alone")
+        done()
+      }
+    )
+  }
 )
 
 

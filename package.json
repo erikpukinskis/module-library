@@ -1,6 +1,6 @@
 {
   "name": "nrtv-library",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Calls modules and orchestrates dependencies between them",
   "main": "library.narrative.js",
   "dependencies": {

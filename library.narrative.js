@@ -64,18 +64,8 @@ function test(setup, description, test) {
 // Calls modules and orchestrates dependencies between them
 
 function Library() {
-  if (!Library.SingletonStore.prototype.describe) {
-    throw new Error("The singleton store below needs a describe(name, func) method:\n"+Library.SingletonStore)
-  } else if (!Library.SingletonStore.prototype.get) {
-    throw new Error("The singleton store below needs a get(name) method:\n"+Library.SingletonStore)
-  }
-  this.singletons = new Library.SingletonStore()
-  this.dependenciesByModule = {}
+  this.modules = {}
 }
-
-
-
-
 
 
 
@@ -107,33 +97,6 @@ test(
 /////////////////////////////////////
 function LibrariesDefineModules(done) {
 
-  function SingletonStore() {
-    this.modules = {}
-    this.singletons = {}
-  }
-
-  SingletonStore.prototype.get =
-    function(name) {
-      var singleton = this.singletons[name]
-
-      if (typeof singleton == "undefined") {
-        singleton = this.modules[name]()
-        this.singletons[name] = singleton
-      }
-
-      return singleton
-    }
-
-  SingletonStore.prototype.describe =
-    function(name, func) {
-      if (!func.call) {
-        throw new Error("Can't define "+name+" as "+JSON.stringify(func)+" cuz it's not a function")
-      }
-      this.modules[name] = func
-    }
-
-  Library.SingletonStore = SingletonStore
-
   Library.prototype.define =
     function(name, two, three) {
       if (three) {
@@ -144,48 +107,80 @@ function LibrariesDefineModules(done) {
         var dependencies = []
       }
 
+      var module = {
+        name: name,
+        dependencies: dependencies,
+        func: func
+      }
+
+      this.modules 
       this.dependenciesByModule[name] = dependencies
 
-      var generator = this.using.bind(this, dependencies, func)
+      evalWithDeps.bind(null, null, dependencies, func)
 
+      var generator = function() {
+
+      }
       this.singletons.describe(name, generator)
     }
 
+  var outputNames = ["gerwil", "stanniford", "spentrop", "enseer", "feshniss", "reptorp"]
+  var nextOutputName = 0
 
+  var frameNames = ["bill", "ted", "frazzle", "sansgret", "bref", "boffo"]
+  var nextFrameName = 0
   Library.prototype.using =
-    function(dependencies, func) {
-      var using = {dependencies: dependencies}
-
-      if (this.beforeUsing) {
-        this.beforeUsing(using)
-        dependencies = using.dependencies
-        var singletonFrame = using.singletons
-      } else {
-        singletonFrame = this.singletons
-      }
-
-      var singletons = []
-
-      for(var i=0; i<dependencies.length; i++) {
-
-        var dependency = dependencies[i]
-
-        if (typeof dependency == "undefined") {
-          throw new Error("Dependency #"+i+" of "+JSON.stringify(dependencies)+" passed to library.using is undefined")
-        } else if (dependency.call) {
-          var singleton = dependency()
-        } else {
-          var singleton = singletonFrame.get(dependency)
-        }
-
-        singletons.push(singleton)
-      }
-
-      return func.apply(null, singletons)
+    function(dependencies, func, message) {
+      evalWithDeps(this.beforeUsing, dependencies, func, this.singletons)
     }
 
   done()
 }
+
+function evalWithDeps(beforeUsing, singletons, dependencies, func) {
+  var outputName = outputNames[nextOutputName++]
+  console.log("in using:", message, "deps are", dependencies, "generating", outputName)
+  var using = {dependencies: dependencies}
+
+  // we get a new frame, but then when we run the generators, that's a new call to using, and it doesn't have the resets or anything, so yeah. we shouldn't bind the generators to the using a priori, we should just do it on demand or something. And maybe we should instantiate a new library with the new frame.
+
+  if (beforeUsing) {
+    beforeUsing(using)
+    dependencies = using.dependencies
+    var singletonFrame = using.singletons
+  } else {
+    singletonFrame = singletons
+  }
+
+  if (!singletonFrame._name) {
+    singletonFrame._name = frameNames[nextFrameName++]
+  }
+  var singletons = []
+
+  for(var i=0; i<dependencies.length; i++) {
+
+    var dependency = dependencies[i]
+
+    if (typeof dependency == "undefined") {
+      throw new Error("Dependency #"+i+" of "+JSON.stringify(dependencies)+" passed to library.using is undefined")
+    } else if (dependency.call) {
+      var singleton = dependency()
+    } else {
+      var singleton = singletonFrame.get(dependency)
+      console.log("NAME/"+dependency+": got singleton", singleton, "aka", singleton._name ,"off", singletonFrame._name, "its collective is", singleton.collective && singleton.collective())
+    }
+
+    singletons.push(singleton)
+  }
+
+  var output = func.apply(null, singletons)
+
+  output._name = outputName
+  console.log("sending back", output, "aka", outputName)
+  return output
+}
+
+
 
 
 
@@ -304,6 +299,8 @@ test(
   }
 )
 
+var names = ["hattie", "gina", "angela", "fiona", "tracy"]
+var nextName = 0
 function ModulesHaveCollectives(done) {
   var clone = require("clone")
   var SingletonFrame = require("nrtv-singleton-frame")
@@ -314,10 +311,11 @@ function ModulesHaveCollectives(done) {
         this.collectives = new SingletonFrame()
       }
 
-      // I think the way I did this won't work. we need to actually reference the frame.
-
       return function() {
-        return clone(object)
+        cl = clone(object)
+        cl.name = names[nextName++]
+        console.log("cloned", cl)
+        return cl
       }
     }
 
@@ -430,7 +428,13 @@ function LibraryResetsSingletons(done) {
         didResetOne = find(anotherToReset)(using.dependencies)
       }
       
+      var rand = "a"+Math.random().toString().split(".")[1].substr(0,4)
+      if (resets.length > 1) {
+        console.log("\n----------------")
+      }
+      console.log("Resetting", resets, "... ("+rand+")")
       using.singletons = this.singletons.reset(resets)
+      console.log("done ("+rand+")")
     }
 
   function alsoNeedsResetting(dependenciesByModule, resets, dependency) {
@@ -487,68 +491,78 @@ test(
         function name(person) {
           collective.names.push(person)
         }
-        name.names = function() {
-          return collective.names
+        name.collective = function() {
+          return collective
         }
         return name
       }
     )
+    console.log("defined name")
 
     library.define(
       "parent",
       ["name"],
       function(name) {
-        return function(person) {
+        function parent(person) {
           name(person)
         }
+        parent.collective = function() {
+          return name.collective()
+        }
 
-        return tonight
+        return parent
       }
     )
+    console.log("defined parent")
 
-    library.using(
-      ["name"],
-      function(name) {
-        name("fred")
+    // library.using(
+    //   ["name"],
+    //   function(name) {
+    //     name("fred")
 
-        expect(name.names()).to.have.members(["fred"])
-      }
-    )
+    //     expect(name.names()).to.have.members(["fred"])
+    //   }
+    // )
+    // console.log("added fred")
 
-    library.using(
-      ["name"],
-      function(name) {
-        expect(name.names()).to.have.members(["fred"])
-      }
-    )
+    // library.using(
+    //   ["name"],
+    //   function(name) {
+    //     expect(name.names()).to.have.members(["fred"])
+    //   }
+    // )
 
-    library.using(
-      ["parent"],
-      function(parent) {
-        parent("trish")
-      }
-    )
+    // library.using(
+    //   ["parent"],
+    //   function(parent) {
+    //     parent("trish")
+    //   }
+    // )
+    // console.log("added trish")
 
-    library.using(
-      ["name"],
-      function(name) {
-        expect(name.names()).to.have.members(["fred", "trish"])
-      }
-    )
+    // library.using(
+    //   ["name"],
+    //   function(name) {
+    //     expect(name.names()).to.have.members(["fred", "trish"])
+    //   }
+    // )
+    // console.log("checked two")
 
-    library.using(
-      [library.reset("name")],
-      function(name) {
-        expect(name.names()).to.be.empty
-      }
-    )
+    // library.using(
+    //   [library.reset("name")],
+    //   function(name) {
+    //     expect(name.names()).to.be.empty
+    //   }
+    // )
+    // console.log("reset name")
 
-    library.using(
-      ["name"],
-      function(name) {
-        expect(name.names()).to.have.members(["fred", "trish"])
-      }
-    )
+    // library.using(
+    //   ["name"],
+    //   function(name) {
+    //     expect(name.names()).to.have.members(["fred", "trish"])
+    //   }
+    // )
+    // console.log("used name")
 
     library.using(
       [
@@ -556,12 +570,13 @@ test(
         "parent"
       ],
       function(name, parent) {
-        expect(name.names()).to.be.empty
-        parent("josey")
-        expect(name.names()).to.have.members(["josey"])
+        expect(name.collective()).to.equal(parent.collective())
       }
     )
 
+    // why did feshniss get gerwil off bill when it should've gotten enseer off ted
+
+    console.log("reset again")
 
     done()
   }

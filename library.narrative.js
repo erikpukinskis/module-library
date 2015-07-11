@@ -1,6 +1,7 @@
 ///////////////////////////////////////
 // BOILERPLATE
 var chai = require("chai")
+var only = "dependencies of dependencies get reset too"
 
 function test(setup, description, test) {
   if (!test) {
@@ -9,9 +10,17 @@ function test(setup, description, test) {
     setup = undefined
   }
 
+  function done(extra) {
+    clearTimeout(timer)
+    console.log("  ✓ ", description, extra ? extra : "")
+  }
+
   if (process.argv[2] != "--test") {
     setup && setup(function() {})
-    return
+    return done()
+  } else if (only && description != only) {
+    setup && setup(function() {})
+    return done(" [ SKIPPED ]")
   }
 
   var expect = chai.expect
@@ -26,11 +35,6 @@ function test(setup, description, test) {
     },
     1000
   )
-
-  function done() {
-    clearTimeout(timer)
-    console.log("  ✓ ", description)
-  }
 
   var runTest = test.bind(null, chai.expect)
 
@@ -66,7 +70,7 @@ function Library() {
     throw new Error("The singleton store below needs a get(name) method:\n"+Library.SingletonStore)
   }
   this.singletons = new Library.SingletonStore()
-  this.dependencies = {}
+  this.dependenciesByModule = {}
 }
 
 
@@ -140,7 +144,7 @@ function LibrariesDefineModules(done) {
         var dependencies = []
       }
 
-      this.dependencies[name] = dependencies
+      this.dependenciesByModule[name] = dependencies
 
       var generator = this.using.bind(this, dependencies, func)
 
@@ -306,6 +310,12 @@ function ModulesHaveCollectives(done) {
 
   Library.prototype.collective =
     function(object) {
+      if (!this.collectives) {
+        this.collectives = new SingletonFrame()
+      }
+
+      // I think the way I did this won't work. we need to actually reference the frame.
+
       return function() {
         return clone(object)
       }
@@ -414,7 +424,7 @@ function LibraryResetsSingletons(done) {
       }
 
       var didResetOne = resets.length > 0
-      var anotherToReset = alsoNeedsResetting.bind(null, this.dependencies, resets)
+      var anotherToReset = alsoNeedsResetting.bind(null, this.dependenciesByModule, resets)
 
       while (didResetOne) {
         didResetOne = find(anotherToReset)(using.dependencies)
@@ -423,29 +433,34 @@ function LibraryResetsSingletons(done) {
       using.singletons = this.singletons.reset(resets)
     }
 
-  function alsoNeedsResetting(dependencies, resets, dependency) {
+  function alsoNeedsResetting(dependenciesByModule, resets, dependency) {
 
     var alreadyReset = contains(dependency)(resets)
 
-    if (!alreadyReset && dependsOn.bind(null, dependencies)(dependency, resets)) {
+    if (!alreadyReset && dependsOn.bind(null, dependenciesByModule)(dependency, resets)) {
       resets.push(dependency)
       return true
     }
   }
 
-  function dependsOn(dependencies, target, possibleDeps) {
+  function dependsOn(dependenciesByModule, target, possibleDeps) {
+
+    isDirectMatch = contains(target)(possibleDeps)
 
     if (typeof target == "function") {
       return false
+    } else if (isDirectMatch) {
+      return true
     }
 
-    dependencies[target].forEach(function(dependency) {
+    var dependencies = dependenciesByModule[target]
 
-      if (dependsOn(dependencies, dependency, possibleDeps)) {
+    for(var i=0; i<dependencies.length; i++) {
 
-        return true
-      }
-    })
+      var foundDeep = dependsOn(dependenciesByModule, dependencies[i], possibleDeps)
+
+      if (foundDeep) { return true }
+    }
 
     return false
   }
@@ -464,48 +479,91 @@ test(
     var library = new Library()
 
     library.define(
-      "walk",
+      "name",
       [library.collective(
-        {cityStreets: 0})
+        {names: []})
       ],
       function(collective) {
-        return function() {
-          collective.cityStreets++
-
-          return "I walked "+collective.cityStreets+" streets alone"
+        function name(person) {
+          collective.names.push(person)
         }
+        name.names = function() {
+          return collective.names
+        }
+        return name
       }
     )
 
     library.define(
-      "tonight",
-      ["walk"],
-      function(walk) {
-        return function() {
-          walk()
+      "parent",
+      ["name"],
+      function(name) {
+        return function(person) {
+          name(person)
         }
+
+        return tonight
       }
     )
 
     library.using(
-      ["walk"],
-      function(walk) {
-        walk()
+      ["name"],
+      function(name) {
+        name("fred")
+
+        expect(name.names()).to.have.members(["fred"])
+      }
+    )
+
+    library.using(
+      ["name"],
+      function(name) {
+        expect(name.names()).to.have.members(["fred"])
+      }
+    )
+
+    library.using(
+      ["parent"],
+      function(parent) {
+        parent("trish")
+      }
+    )
+
+    library.using(
+      ["name"],
+      function(name) {
+        expect(name.names()).to.have.members(["fred", "trish"])
+      }
+    )
+
+    library.using(
+      [library.reset("name")],
+      function(name) {
+        expect(name.names()).to.be.empty
+      }
+    )
+
+    library.using(
+      ["name"],
+      function(name) {
+        expect(name.names()).to.have.members(["fred", "trish"])
       }
     )
 
     library.using(
       [
-        library.reset("walk"),
-        "tonight"
+        library.reset("name"),
+        "parent"
       ],
-      function(walk, tonight) {
-        tonight()
-        var walks = walk()
-        expect(walks).to.equal("I walked 2 streets alone")
-        done()
+      function(name, parent) {
+        expect(name.names()).to.be.empty
+        parent("josey")
+        expect(name.names()).to.have.members(["josey"])
       }
     )
+
+
+    done()
   }
 )
 

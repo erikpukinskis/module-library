@@ -2,6 +2,7 @@ var test = require("nrtv-test")
 var Library = require("./library").Library
 
 
+
 test(
   "define a module and then use it",
 
@@ -20,6 +21,7 @@ test(
     }
   }
 )
+
 
 
 
@@ -46,7 +48,6 @@ test(
     done()
   }
 )
-
 
 
 
@@ -83,6 +84,36 @@ test(
 
 
 
+
+test(
+  "dependencies can be commonjs modules",
+
+  function(expect, done) {
+    var library = new Library()
+
+    library.define(
+      "finder",
+      ["ramda"],
+      function(rambda) {
+        return rambda.contains
+      }
+    )
+
+    library.using(
+      ["finder", "ramda"],
+      function(finder, rambda) {
+        expect(finder).to.be.a("function")
+        expect(rambda.find).to.be.a("function")
+        done()
+
+      }
+    )
+  }
+)
+
+
+
+
 test(
   "modules have collective objects",
 
@@ -109,6 +140,7 @@ test(
 
   }
 )
+
 
 
 
@@ -225,28 +257,3 @@ test(
 )
 
 
-test(
-  "dependencies can be commonjs modules",
-
-  function(expect, done) {
-    var library = new Library()
-
-    library.define(
-      "finder",
-      ["ramda"],
-      function(rambda) {
-        return rambda.contains
-      }
-    )
-
-    library.using(
-      ["finder", "ramda"],
-      function(finder, rambda) {
-        expect(finder).to.be.a("function")
-        expect(rambda.find).to.be.a("function")
-        done()
-
-      }
-    )
-  }
-)

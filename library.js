@@ -203,7 +203,16 @@ Library.prototype._generateSingleton =
 
     if (typeof name != "string") {
       throw new Error("You asked for a module by the name of "+name+" but, uh... that's not really a name.")
-    } else if (!module) {
+
+    } else if (module) {
+      // we're good!
+    } else if (commonJsSingleton = require(name)) {
+
+      this.singletonCache[name] = commonJsSingleton
+
+      return commonJsSingleton
+
+    } else {
       throw new Error("You don't seem to have ever mentioned a "+name+" module.")
     }
 

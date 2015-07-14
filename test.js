@@ -3,7 +3,7 @@ var Library = require("./library").Library
 
 
 test(
-  "Define a module and then use it",
+  "define a module and then use it",
 
   function(expect, done) {
     var library = new Library()
@@ -24,7 +24,7 @@ test(
 
 
 test(
-  "Don't run the generator every time",
+  "don't run the generator every time",
 
   function(expect, done) {
     var library = new Library()
@@ -52,7 +52,7 @@ test(
 
 
 test(
-  "Definitions can have dependencies",
+  "definitions can have dependencies",
 
   function(expect, done) {
     var library = new Library()
@@ -221,5 +221,32 @@ test(
       }
     )
 
+  }
+)
+
+
+test(
+  "dependencies can be commonjs modules",
+
+  function(expect, done) {
+    var library = new Library()
+
+    library.define(
+      "finder",
+      ["ramda"],
+      function(rambda) {
+        return rambda.contains
+      }
+    )
+
+    library.using(
+      ["finder", "ramda"],
+      function(finder, rambda) {
+        expect(finder).to.be.a("function")
+        expect(rambda.find).to.be.a("function")
+        done()
+
+      }
+    )
   }
 )

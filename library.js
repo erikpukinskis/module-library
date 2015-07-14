@@ -190,22 +190,12 @@ Library.prototype._getSingleton =
 
       return this.singletonCache[name]
 
-    } else {
-      var singleton = this._generateSingleton(name)
-
-      return singleton
-    }
-  }
-
-Library.prototype._generateSingleton =
-  function(name) {
-    var module = this.modules[name]
-
-    if (typeof name != "string") {
+    } else if (typeof name != "string") {
       throw new Error("You asked for a module by the name of "+name+" but, uh... that's not really a name.")
 
-    } else if (module) {
-      // we're good!
+    } else if (module = this.modules[name]) {
+      return this._generateSingleton(module)
+
     } else if (commonJsSingleton = require(name)) {
 
       this.singletonCache[name] = commonJsSingleton
@@ -216,6 +206,10 @@ Library.prototype._generateSingleton =
       throw new Error("You don't seem to have ever mentioned a "+name+" module.")
     }
 
+  }
+
+Library.prototype._generateSingleton =
+  function(module) {
     var deps = []
 
     for(var i=0; i<module.dependencies.length; i++) {
@@ -225,7 +219,7 @@ Library.prototype._generateSingleton =
 
     var singleton = module.func.apply(null, deps)
 
-    this.singletonCache[name] = singleton
+    this.singletonCache[module.name] = singleton
 
     return singleton
   }

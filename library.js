@@ -83,7 +83,7 @@ Library.prototype.using =
 
     // At this point we have a properly reset library, and the dependencies should just be module names and collective IDs, so we just iterate through the dependencies and build the singletons.
 
-    return func.apply(null, this._getArguments(dependencies, func))
+    return func.apply(null, library._getArguments(dependencies, func))
   }
 
 

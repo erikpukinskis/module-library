@@ -1,7 +1,7 @@
 ///////////////////////////////////////
 // BOILERPLATE
 var chai = require("chai")
-var only //= "Don't run the generator every time"
+var only //= "collectives can be reset by the user"
 
 function test(setup, description, test) {
   if (!test) {
@@ -143,6 +143,7 @@ test(
 
 test(
   "modules have collective objects",
+
   function(expect, done) {
     var library = new Library()
 
@@ -208,7 +209,6 @@ test(
 
       var burrows = Bird.getNests()
       expect(burrows).to.have.members(["burrow", "occupied burrow"])
-
       library.using(
         [library.reset("bird")],
         makeCuppedNests
@@ -252,7 +252,6 @@ test(
         return name
       }
     )
-    console.log("defined name")
 
     library.define(
       "parent",
@@ -268,56 +267,6 @@ test(
         return parent
       }
     )
-    console.log("defined parent")
-
-    // library.using(
-    //   ["name"],
-    //   function(name) {
-    //     name("fred")
-
-    //     expect(name.names()).to.have.members(["fred"])
-    //   }
-    // )
-    // console.log("added fred")
-
-    // library.using(
-    //   ["name"],
-    //   function(name) {
-    //     expect(name.names()).to.have.members(["fred"])
-    //   }
-    // )
-
-    // library.using(
-    //   ["parent"],
-    //   function(parent) {
-    //     parent("trish")
-    //   }
-    // )
-    // console.log("added trish")
-
-    // library.using(
-    //   ["name"],
-    //   function(name) {
-    //     expect(name.names()).to.have.members(["fred", "trish"])
-    //   }
-    // )
-    // console.log("checked two")
-
-    // library.using(
-    //   [library.reset("name")],
-    //   function(name) {
-    //     expect(name.names()).to.be.empty
-    //   }
-    // )
-    // console.log("reset name")
-
-    // library.using(
-    //   ["name"],
-    //   function(name) {
-    //     expect(name.names()).to.have.members(["fred", "trish"])
-    //   }
-    // )
-    // console.log("used name")
 
     library.using(
       [
@@ -326,13 +275,9 @@ test(
       ],
       function(name, parent) {
         expect(name.collective()).to.equal(parent.collective())
+        done()
       }
     )
 
-    // why did feshniss get gerwil off bill when it should've gotten enseer off ted
-
-    console.log("reset again")
-
-    done()
   }
 )

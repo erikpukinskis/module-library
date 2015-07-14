@@ -2,7 +2,7 @@
   "name": "nrtv-library",
   "version": "0.3.0",
   "description": "Calls modules and orchestrates dependencies between them",
-  "main": "narrative.js",
+  "main": "library.js",
   "dependencies": {
     "nrtv-singleton-frame": "*",
     "ramda": "*",

@@ -2,14 +2,14 @@
   "name": "nrtv-library",
   "version": "0.1.0",
   "description": "Calls modules and orchestrates dependencies between them",
-  "main": "library.narrative.js",
+  "main": "narrative.js",
   "dependencies": {
     "nrtv-singleton-frame": "*",
     "ramda": "*",
     "clone": "*"
   },
   "scripts": {
-    "test": "node library.narrative.js --test"
+    "test": "node test.js"
   },
   "devDependencies": {
     "chai": "*",

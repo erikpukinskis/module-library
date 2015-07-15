@@ -282,4 +282,23 @@ test(
   }
 )
 
+test(
+  "can export singleton for commonjs",
+
+  function(expect, done) {
+    var library = new Library()
+
+    var singleton = library.export(
+      "foo",
+      function() {
+        return "bar"
+      }
+    )
+
+    expect(singleton).to.equal("bar")
+
+    done()
+  }
+)
+
 

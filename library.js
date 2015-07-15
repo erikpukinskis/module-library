@@ -35,6 +35,17 @@ Library.prototype.define =
     return module
   }
 
+Library.prototype.export =
+  function(name) {
+    var module = this.define.apply(this, arguments)
+
+    var singleton = this._generateSingleton(module)
+    
+    singleton.__module = module
+
+    return singleton
+  }
+
 Library.prototype.collective =
   function(object) {
     return {

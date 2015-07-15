@@ -2,6 +2,7 @@ var test = require("nrtv-test")
 var Library = require("./library").Library
 
 
+// test.only("collectives can be reset by the user")
 
 test(
   "define a module and then use it",
@@ -164,6 +165,25 @@ test(
       }
     )
 
+    library.define(
+      "noreset",
+      [library.collective({})],
+      function(collective) {
+        function noreset(junk) {
+          collective.junk = junk
+        }
+        noreset.collective = collective
+        return noreset
+      }
+    )
+
+    library.using(
+      ["noreset"],
+      function(noreset) {
+        noreset("forest")
+      }
+    )
+
     library.using(
       ["bird"],
       function(Bird) {
@@ -178,25 +198,31 @@ test(
     )
 
     function makeAnotherBurrow(Bird) {
+
       var burrowingOwl =
         new Bird("occupied burrow")
 
-      var burrows = Bird.getNests()
-      expect(burrows).to.have.members(["burrow", "occupied burrow"])
+      expect(Bird.getNests()).to.have.members(["burrow", "occupied burrow"])
+
       library.using(
-        [library.reset("bird")],
+        [
+          library.reset("bird"),
+          "noreset"
+        ],
         makeCuppedNests
       )
     }
 
-    function makeCuppedNests(Bird) {
+    function makeCuppedNests(Bird, noreset) {
+
+      expect(noreset.collective.junk).to.equal("forest")
+
       var hummingbird =
         new Bird("supported cupped")
       var swift =
         new Bird("adherent")
 
-      var cuppedNests = Bird.getNests()
-      expect(cuppedNests).to.have.members(["supported cupped", "adherent"])
+      expect(Bird.getNests()).to.have.members(["supported cupped", "adherent"])
 
       done()
     }

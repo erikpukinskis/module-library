@@ -12,8 +12,6 @@ var contains = ramda.contains
 function Library() {
   this.modules = {}
   this.singletonCache = {}
-  this.collectivePrototypes = {}
-  this.collectiveCache = {}
 }
 
 Library.prototype.define =
@@ -33,19 +31,24 @@ Library.prototype.define =
     }
 
     this.modules[name] = module
+
+    return module
   }
 
 Library.prototype.collective =
   function(object) {
-    var id = Math.random().toString(36).split(".")[1]
-
-    this.collectivePrototypes[id] = object
-    return {collective: id}
+    return {
+      __dependencyType: "collective",
+      object:object
+    }
   }
 
 Library.prototype.reset =
   function(name) {
-    return {reset: name}
+    return {
+      __dependencyType: "reset",
+      name: name
+    }
   }
 
 Library.prototype.using =
@@ -57,9 +60,9 @@ Library.prototype.using =
 
     for(var i=0; i<dependencies.length; i++) {
 
-      if (typeof dependencies[i] == "object" && dependencies[i].reset) {
+      if (dependencies[i].__dependencyType == "reset") {
 
-        var name = dependencies[i].reset
+        var name = dependencies[i].name
 
         // If we do need to reset something, we note it and then change the dependency back to a regular name so that when we pass the dependencies to the new (reset) library it doesn't try to reset it again.
 
@@ -126,13 +129,19 @@ Library.prototype._dependsOn =
 
     isDirectMatch = contains(target)(possibleDeps)
 
-    if (typeof target == "function") {
-      return false
-    } else if (isDirectMatch) {
+    if (isDirectMatch) {
       return true
+    } else if (target.__dependencyType) {
+      return false
     }
 
-    var dependencies = this.modules[target].dependencies
+    var module = this.modules[target]
+
+    if (!module) {
+      throw new Error("Trying to figure out what "+target+" depends on, but that doesn't seem like a module name we know about.")
+    }
+
+    var dependencies = module.dependencies
 
     for(var i=0; i<dependencies.length; i++) {
 
@@ -163,46 +172,44 @@ Library.prototype._getArguments =
     return args
   }
 
-Library.prototype._getCollective =
-  function(id) {
-    if (id in this.collectiveCache) {
-      return this.collectiveCache[id]
-    }
-
-    var collective = clone(this.collectivePrototypes[id])
-
-    this.collectiveCache[id] = collective
-
-    return collective
-  }
-
 Library.prototype._getSingleton =
-  function (name) {
+  function (identifier) {
 
-    if (typeof name == "object" && name.collective) {
+    if (identifier.__dependencyType == "collective") {
 
-      var id = name.collective
+      return clone(identifier.object)
 
-      return this._getCollective(id)
+    } else if (identifier in this.singletonCache) {
 
-    } else if (name in this.singletonCache) {
+      return this.singletonCache[identifier]
 
-      return this.singletonCache[name]
+    } else if (typeof identifier != "string") {
 
-    } else if (typeof name != "string") {
-      throw new Error("You asked for a module by the name of "+name+" but, uh... that's not really a name.")
+      throw new Error("You asked for a module by the name of "+identifier+" but, uh... that's not really a name.")
 
-    } else if (module = this.modules[name]) {
+    } else if (module = this.modules[identifier]) {
+
       return this._generateSingleton(module)
 
-    } else if (commonJsSingleton = require(name)) {
+    } else if (commonJsSingleton = require(identifier)) {
 
-      this.singletonCache[name] = commonJsSingleton
+      // If the commonjs module turns out to be a Nrtv module, we will ignore the commonjs singleton and just use the exported module to generate a singleton from the current library.
 
-      return commonJsSingleton
+      if (module = commonJsSingleton.__module) {
+
+        module = clone(module)
+        module.name = identifier
+
+        return this._generateSingleton(module)
+
+      } else {
+        this.singletonCache[identifier] = commonJsSingleton
+
+        return commonJsSingleton
+      }
 
     } else {
-      throw new Error("You don't seem to have ever mentioned a "+name+" module.")
+      throw new Error("You don't seem to have ever mentioned a "+identifier+" module.")
     }
 
   }
@@ -231,20 +238,19 @@ Library.prototype._generateSingleton =
 
 Library.prototype.cloneAndReset =
   function(resets) {
+
     if (resets.length < 1) {
       return this
     }
 
     var newLibrary = new Library()
+
     newLibrary.modules = this.modules
-    newLibrary.collectivePrototypes = this.collectivePrototypes
 
     newLibrary.singletonCache = clone(this.singletonCache)
-    newLibrary.collectiveCache = clone(this.singletonCache)
 
     resets.forEach(function(name) {
       delete newLibrary.singletonCache[name]
-      delete newLibrary.collectiveCache[name]
     })
 
     return newLibrary

@@ -7,11 +7,16 @@ var clone = require("clone")
 var ramda = require("ramda")
 var find = ramda.find
 var contains = ramda.contains
+var log = require("treelog")
+
+
 
 
 function Library() {
   this.modules = {}
   this.singletonCache = {}
+  this.aliases = {}
+  this._id = Math.random().toString(36).split(".")[1].substr(0,4)
 }
 
 Library.prototype.define =
@@ -37,10 +42,11 @@ Library.prototype.define =
 
 Library.prototype.export =
   function(name) {
+
     var module = this.define.apply(this, arguments)
 
     var singleton = this._generateSingleton(module)
-    
+
     singleton.__module = module
 
     return singleton
@@ -52,6 +58,11 @@ Library.prototype.collective =
       __dependencyType: "collective",
       object:object
     }
+  }
+
+Library.prototype._getCollective =
+  function(identifier) {
+    return clone(identifier.object)
   }
 
 Library.prototype.reset =
@@ -138,6 +149,9 @@ Library.prototype._getAnotherToReset =
 Library.prototype._dependsOn =
   function(target, possibleDeps) {
 
+    if (alias = this.aliases[target]) {
+      return this._dependsOn(alias, possibleDeps)
+    }
     isDirectMatch = contains(target)(possibleDeps)
 
     if (isDirectMatch) {
@@ -172,7 +186,6 @@ Library.prototype._dependsOn =
 
 Library.prototype._getArguments =
   function(dependencies, func) {
-
     var args = []
 
     for(var i=0; i<dependencies.length; i++) {
@@ -188,7 +201,7 @@ Library.prototype._getSingleton =
 
     if (identifier.__dependencyType == "collective") {
 
-      return clone(identifier.object)
+      return this._getCollective(identifier)
 
     } else if (identifier in this.singletonCache) {
 
@@ -199,29 +212,15 @@ Library.prototype._getSingleton =
       throw new Error("You asked for a module by the name of "+identifier+" but, uh... that's not really a name.")
 
     } else if (module = this.modules[identifier]) {
-
       return this._generateSingleton(module)
+    } else if (alias = this.aliases[identifier]) {
+      return this._getSingleton(alias)
+    } else if (singleton = require(identifier)) {
 
-    } else if (commonJsSingleton = require(identifier)) {
-
-      // If the commonjs module turns out to be a Nrtv module, we will ignore the commonjs singleton and just use the exported module to generate a singleton from the current library.
-
-      if (module = commonJsSingleton.__module) {
-
-        module = clone(module)
-        module.name = identifier
-
-        return this._generateSingleton(module)
-
-      } else {
-        this.singletonCache[identifier] = commonJsSingleton
-
-        return commonJsSingleton
-      }
-
-    } else {
-      throw new Error("You don't seem to have ever mentioned a "+identifier+" module.")
+      return this._processCommonJsSingleton(identifier, singleton)
     }
+
+    throw new Error("You don't seem to have ever mentioned a "+identifier+" module to "+this._id)
 
   }
 
@@ -241,6 +240,29 @@ Library.prototype._generateSingleton =
     return singleton
   }
 
+Library.prototype._processCommonJsSingleton =
+  function(path, singleton) {
+
+    if (module = singleton.__module) {
+
+      if (!this.modules[module.name]) {
+        this.modules[module.name] = module
+      }
+
+      if (module.name != path) {
+
+        this.aliases[path] = module.name
+      }
+
+      return this._getSingleton(path)
+
+    } else {
+      this.singletonCache[path] = singleton
+
+      return singleton
+    }
+
+  }
 
 
 // Resetting

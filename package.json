@@ -14,7 +14,8 @@
   "devDependencies": {
     "nrtv-test": "*",
     "chai": "*",
-    "requirejs": "*"
+    "requirejs": "*",
+    "treelog": "*"
   },
   "license": "ISC",
   "homepage": "https://github.com/erikpukinskis/nrtv-library",

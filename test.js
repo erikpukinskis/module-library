@@ -1,8 +1,8 @@
 var test = require("nrtv-test")
 var Library = require("./library").Library
+var log = require("treelog")
 
-
-// test.only("collectives can be reset by the user")
+// test.only("resets work for modules exported through commonjs")
 
 test(
   "define a module and then use it",
@@ -301,4 +301,38 @@ test(
   }
 )
 
+
+test(
+  "resets work for modules exported through commonjs",
+
+  function(expect, done) {
+    var library = new Library()
+
+    library.using(
+      ["./flower", "./seed"],
+      function(Flower, seed) {
+        new Flower("Danube")
+        expect(seed.sprouts()).to.have.members(["Danube P. Sprout"])
+      }
+    )
+
+    library.using(
+      [
+        "./flower",
+        library.reset("./seed")
+      ],
+      function(Flower, seed) {
+        wall = new Flower("Daryl")
+
+        expect(seed.sprouts()).to
+        .have.members([
+          "Daryl P. Sprout",
+          "Danube P. Sprout"
+        ])
+
+        done()
+      }
+    )
+  }
+)
 

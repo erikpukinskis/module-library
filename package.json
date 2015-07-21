@@ -4,7 +4,6 @@
   "description": "Caches module singletons and orchestrates dependencies between them",
   "main": "library.js",
   "dependencies": {
-    "nrtv-singleton-frame": "*",
     "ramda": "*",
     "clone": "*"
   },
@@ -12,9 +11,7 @@
     "test": "node test.js"
   },
   "devDependencies": {
-    "nrtv-test": "*",
-    "chai": "*",
-    "requirejs": "*"
+    "nrtv-test": "*"
   },
   "license": "ISC",
   "homepage": "https://github.com/erikpukinskis/nrtv-library",

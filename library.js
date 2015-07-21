@@ -1,4 +1,3 @@
-
 // Library
 
 // Calls modules and orchestrates dependencies between them
@@ -26,6 +25,18 @@ Library.prototype.define =
     } else {
       var func = two
       var dependencies = []
+    }
+
+    if (!name) {
+      throw new Error("library.define or export or whatever you did expects a name as the first argument, but you passed "+name)
+    }
+
+    if (typeof func != "function") {
+      throw new Error("library.define/export/etc needs some kind of function but you gave it "+func)
+    }
+
+    if (!Array.isArray(dependencies)) {
+      throw new Error("You passed "+dependencies+" to library.define/export/whatever in between the name and the function, but that's not an array of dependencies. We were expecting an array of dependencies there.")
     }
 
     var module = {
@@ -197,7 +208,6 @@ Library.prototype._getArguments =
 
 Library.prototype._getSingleton =
   function (identifier) {
-
     if (identifier.__dependencyType == "collective") {
 
       return this._getCollective(identifier)
@@ -214,8 +224,11 @@ Library.prototype._getSingleton =
       return this._generateSingleton(module)
     } else if (alias = this.aliases[identifier]) {
       return this._getSingleton(alias)
-    } else if (singleton = this.require(identifier)) {
+    }
 
+    var singleton = this.require(identifier)
+
+    if (singleton) {
       return this._processCommonJsSingleton(identifier, singleton)
     }
 

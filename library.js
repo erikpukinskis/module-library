@@ -7,8 +7,6 @@ var clone = require("clone")
 var ramda = require("ramda")
 var find = ramda.find
 var contains = ramda.contains
-var log = require("treelog")
-
 
 
 

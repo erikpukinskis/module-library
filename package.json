@@ -1,7 +1,7 @@
 {
   "name": "nrtv-library",
   "version": "0.5.0",
-  "description": "Calls modules and orchestrates dependencies between them",
+  "description": "Caches module singletons and orchestrates dependencies between them",
   "main": "library.js",
   "dependencies": {
     "nrtv-singleton-frame": "*",
@@ -14,8 +14,7 @@
   "devDependencies": {
     "nrtv-test": "*",
     "chai": "*",
-    "requirejs": "*",
-    "treelog": "*"
+    "requirejs": "*"
   },
   "license": "ISC",
   "homepage": "https://github.com/erikpukinskis/nrtv-library",

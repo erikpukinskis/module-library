@@ -5,13 +5,11 @@
   "main": "library.js",
   "dependencies": {
     "ramda": "*",
-    "clone": "*"
+    "clone": "*",
+    "nrtv-test": "*"
   },
   "scripts": {
     "test": "node test.js"
-  },
-  "devDependencies": {
-    "nrtv-test": "*"
   },
   "license": "ISC",
   "homepage": "https://github.com/erikpukinskis/nrtv-library",

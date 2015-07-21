@@ -1,5 +1,4 @@
 var library = require("../library")(require)
-var log = require("treelog")
 
 module.exports = library.export(
   "seed",

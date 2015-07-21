@@ -1,6 +1,5 @@
 var test = require("nrtv-test")
 var Library = require("./library").Library
-var log = require("treelog")
 
 // test.only("resets work for modules exported through commonjs")
 

@@ -371,7 +371,7 @@ test(
       return "boo ba doo"
     }
 
-    var library = Library(alternateRequire)
+    var library = require("./library")(alternateRequire)
 
     library.using(
       ["this could be anything"],

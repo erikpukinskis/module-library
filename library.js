@@ -10,19 +10,12 @@ var contains = ramda.contains
 var test = require("nrtv-test")
 
 
-function Library(alternateRequire) {
-
-  if (alternateRequire) {
-    var library = new Library()
-    library.require = alternateRequire
-    return library
-  }
-
+function Library() {
   this.modules = {}
   this.singletonCache = {}
   this.aliases = {}
   this._id = Math.random().toString(36).split(".")[1].substr(0,4)
-  this.require = require
+  this.require = require  
 }
 
 Library.prototype.define =
@@ -315,6 +308,13 @@ Library.prototype.test =
   }
 
 
-var library = new Library()
-library.Library = Library
-module.exports = library
+function libraryFactory(alternateRequire) {
+
+  var library = new Library()
+  library.require = alternateRequire
+  return library
+}
+
+libraryFactory.Library = Library
+
+module.exports = libraryFactory

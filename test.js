@@ -381,5 +381,23 @@ test(
       }
     )
   }
+)
 
+
+test(
+  "same library regardless of require",
+
+  function(expect, done) {
+    var one = require("./library")(function() {})
+    var two =  require("./library")(function() {})
+
+    one.define("foo", function() {
+      return "yup"
+    })
+
+    two.using(["foo"], function(foo) {
+      expect(foo).to.equal("yup")
+      done()
+    })
+  }
 )

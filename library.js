@@ -268,6 +268,18 @@ Library.prototype._processCommonJsSingleton =
 
 // When we have figured out what all modules need to be reset, we build a new library with the cache cleared for those.
 
+Library.prototype.clone =
+  function() {
+    var newLibrary = new Library()
+
+    newLibrary.modules = this.modules
+    newLibrary.singletonCache = this.singletonCache
+    newLibrary.aliases = this.aliases
+    newLibrary.require = this.require
+
+    return newLibrary
+  }
+
 Library.prototype.cloneAndReset =
   function(resets) {
 
@@ -275,9 +287,7 @@ Library.prototype.cloneAndReset =
       return this
     }
 
-    var newLibrary = new Library()
-
-    newLibrary.modules = this.modules
+    var newLibrary = this.clone()
 
     newLibrary.singletonCache = clone(this.singletonCache)
 
@@ -307,12 +317,15 @@ Library.prototype.test =
     })
   }
 
+var library = new Library()
 
 function libraryFactory(alternateRequire) {
 
-  var library = new Library()
-  library.require = alternateRequire
-  return library
+  var newLibrary = library.clone()
+
+  newLibrary.require = alternateRequire
+
+  return newLibrary
 }
 
 libraryFactory.Library = Library

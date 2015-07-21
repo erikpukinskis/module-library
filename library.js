@@ -7,7 +7,7 @@ var clone = require("clone")
 var ramda = require("ramda")
 var find = ramda.find
 var contains = ramda.contains
-
+var test = require("nrtv-test")
 
 
 function Library() {
@@ -287,6 +287,24 @@ Library.prototype.cloneAndReset =
     return newLibrary
   }
 
+
+// Testing
+
+Library.prototype.test =
+  function(description, dependencies, runTest) {
+
+    this.using(dependencies, function() {
+
+      var deps = Array.prototype.slice.call(arguments)
+
+      test(description, function(expect, done) {
+
+        var args = [expect, done].concat(deps)
+
+        runTest.apply(null, args)
+      })
+    })
+  }
 
 
 var library = new Library()

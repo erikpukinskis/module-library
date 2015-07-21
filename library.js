@@ -10,11 +10,19 @@ var contains = ramda.contains
 var test = require("nrtv-test")
 
 
-function Library() {
+function Library(alternateRequire) {
+
+  if (alternateRequire) {
+    var library = new Library()
+    library.require = alternateRequire
+    return library
+  }
+
   this.modules = {}
   this.singletonCache = {}
   this.aliases = {}
   this._id = Math.random().toString(36).split(".")[1].substr(0,4)
+  this.require = require
 }
 
 Library.prototype.define =
@@ -213,7 +221,7 @@ Library.prototype._getSingleton =
       return this._generateSingleton(module)
     } else if (alias = this.aliases[identifier]) {
       return this._getSingleton(alias)
-    } else if (singleton = require(identifier)) {
+    } else if (singleton = this.require(identifier)) {
 
       return this._processCommonJsSingleton(identifier, singleton)
     }

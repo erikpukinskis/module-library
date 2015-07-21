@@ -361,3 +361,25 @@ test(
     )
   }
 )
+
+
+test(
+  "external require functions",
+
+  function(expect, done) {
+    function alternateRequire() {
+      return "boo ba doo"
+    }
+
+    var library = Library(alternateRequire)
+
+    library.using(
+      ["this could be anything"],
+      function(boo) {
+        expect(boo).to.equal("boo ba doo")
+        done()
+      }
+    )
+  }
+
+)

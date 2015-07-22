@@ -130,6 +130,7 @@ test(
       function(collective) {
         expect(collective.flights).to.be.empty
         done()
+        return true
       }
     )
 
@@ -140,8 +141,6 @@ test(
 
   }
 )
-
-
 
 
 test(
@@ -334,6 +333,26 @@ test(
     )
   }
 )
+
+test(
+  "you can reset a module before using its neighbors",
+
+  function(expect, done) {
+    var library = new Library()
+
+    library.using(
+      [
+        "./flower",
+        library.reset("./seed")
+      ],
+      function(Flower, seed) {
+        done()
+      }
+    )
+  }
+)
+
+
 
 
 test(

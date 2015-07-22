@@ -173,6 +173,13 @@ Library.prototype._dependsOn =
     var module = this.modules[target]
 
     if (!module) {
+      this._getSingleton(target)
+      var alias = this.aliases[target]
+      if (alias) { target = alias }
+      module = this.modules[target]
+    }
+
+    if (!module) {
       throw new Error("Trying to figure out what "+target+" depends on, but that doesn't seem like a module name we know about.")
     }
 

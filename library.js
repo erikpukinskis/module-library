@@ -226,7 +226,14 @@ Library.prototype._getSingleton =
       return this._getSingleton(alias)
     }
 
-    var singleton = this.require(identifier)
+    try {
+      var singleton = this.require(identifier)
+    } catch (e) {
+      if (e.code == "MODULE_NOT_FOUND" && identifier.match(/[A-Z]/)) {
+        e.message = e.message+" (is '"+identifier+"' capitalized right? usually modules are lowercase.)"
+      }
+      throw e
+    }
 
     if (singleton) {
       return this._processCommonJsSingleton(identifier, singleton)

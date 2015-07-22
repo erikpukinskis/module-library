@@ -256,6 +256,10 @@ Library.prototype._generateSingleton =
 
     this.singletonCache[module.name] = singleton
 
+    if (typeof singleton == "undefined") {
+      throw new Error("The generator for "+module.name+" didn't return anything.")
+    }
+
     return singleton
   }
 

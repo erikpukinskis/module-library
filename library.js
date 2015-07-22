@@ -317,6 +317,14 @@ Library.prototype.cloneAndReset =
 Library.prototype.test =
   function(description, dependencies, runTest) {
 
+    var argumentsAccepted = runTest.length
+
+    var dependenciesProvided = dependencies.length
+
+    if (argumentsAccepted != dependenciesProvided+2) {
+      throw new Error("Your test function "+runTest+" should take "+(dependenciesProvided+2)+" arguments: expect, done, and one argument for each of the "+dependenciesProvided+" dependencies provided ("+dependencies+")")
+    }
+
     this.using(dependencies, function() {
 
       var deps = Array.prototype.slice.call(arguments)

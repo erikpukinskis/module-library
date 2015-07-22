@@ -173,10 +173,17 @@ Library.prototype._dependsOn =
     var module = this.modules[target]
 
     if (!module) {
-      this._getSingleton(target)
+      var singleton = this._getSingleton(target)
       var alias = this.aliases[target]
       if (alias) { target = alias }
       module = this.modules[target]
+    }
+
+    if (singleton && !module) {
+
+      // It's just a regular commonjs module, so all of the dependency information has been destroyed and we can't do any fun stuff.
+
+      return false
     }
 
     if (!module) {

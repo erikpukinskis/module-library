@@ -363,6 +363,8 @@ Library.prototype.test =
     })
   }
 
+Library.prototype.test.only = test.only
+
 var library = new Library()
 
 function libraryFactory(alternateRequire) {

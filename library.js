@@ -287,7 +287,7 @@ Library.prototype._processCommonJsSingleton =
       }
 
       if (module.name != path) {
-
+        console.log(" ⚡ WARNING ⚡ The commonjs module", path, "returned a nrtv-library module called", module.name)
         this.aliases[path] = module.name
       }
 
@@ -329,8 +329,15 @@ Library.prototype.cloneAndReset =
 
     newLibrary.singletonCache = clone(this.singletonCache)
 
+    var aliases = this.aliases
+
     resets.forEach(function(name) {
+      var alias = aliases[name]
+
       delete newLibrary.singletonCache[name]
+      if (alias) {
+        delete newLibrary.singletonCache[alias]
+      }
     })
 
     return newLibrary

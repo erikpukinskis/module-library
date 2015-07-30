@@ -314,18 +314,19 @@ test(
       }
     )
 
+    // we weren't resetting "seed" before when we try to reset "./seed". That suggests to me that now flower and seed have different seed singletons.
+
     library.using(
       [
         "./flower",
         library.reset("./seed")
       ],
       function(Flower, seed) {
-        wall = new Flower("Daryl")
+        new Flower("Daryl")
 
         expect(seed.sprouts()).to
         .have.members([
-          "Daryl P. Sprout",
-          "Danube P. Sprout"
+          "Daryl P. Sprout"
         ])
 
         done()

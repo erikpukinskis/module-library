@@ -152,16 +152,26 @@ Library.prototype._getAnotherToReset =
   if (alreadyReset) {
     return false
   } else {
-    return this._dependsOn(dependency, resets)
+    var deps = this._dependsOn(dependency, resets)
+    return deps
   }
 }
 
 Library.prototype._dependsOn =
   function(target, possibleDeps) {
+    var aliases = this.aliases
+
+    possibleDeps = possibleDeps.map(
+      function(dep) {
+        var alias = aliases[dep]
+        return alias || dep
+      }
+    )
 
     if (alias = this.aliases[target]) {
       return this._dependsOn(alias, possibleDeps)
     }
+
     isDirectMatch = contains(target)(possibleDeps)
 
     if (isDirectMatch) {
@@ -287,7 +297,13 @@ Library.prototype._processCommonJsSingleton =
       }
 
       if (module.name != path) {
-        console.log(" ⚡ WARNING ⚡ The commonjs module", path, "returned a nrtv-library module called", module.name)
+
+        var pathIsAName = !path.match(/\//)
+
+        if (pathIsAName) {
+          console.log(" ⚡ WARNING ⚡ The commonjs module", path, "returned a nrtv-library module called", module.name)
+        }
+
         this.aliases[path] = module.name
       }
 
@@ -332,12 +348,15 @@ Library.prototype.cloneAndReset =
     var aliases = this.aliases
 
     resets.forEach(function(name) {
-      var alias = aliases[name]
 
       delete newLibrary.singletonCache[name]
+
+      var alias = aliases[name]
+
       if (alias) {
         delete newLibrary.singletonCache[alias]
       }
+
     })
 
     return newLibrary

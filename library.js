@@ -7,9 +7,15 @@ var ramda = require("ramda")
 var find = ramda.find
 var contains = ramda.contains
 var test = require("nrtv-test")
+var difference = ramda.difference
+var union = ramda.union
 
 
 function Library() {
+  this.id = "library-"+Math.random().toString(36).substr(2,4)
+  this.root = this
+  this.children = []
+  this.resets = []
   this.modules = {}
   this.singletonCache = {}
   this.aliases = {}
@@ -325,7 +331,9 @@ Library.prototype._processCommonJsSingleton =
 Library.prototype.clone =
   function() {
     var newLibrary = new Library()
-
+    newLibrary.parent = this
+    this.children.push(newLibrary)
+    newLibrary.root = this.root
     newLibrary.modules = this.modules
     newLibrary.singletonCache = this.singletonCache
     newLibrary.aliases = this.aliases
@@ -342,7 +350,7 @@ Library.prototype.cloneAndReset =
     }
 
     var newLibrary = this.clone()
-
+    newLibrary.resets = resets
     newLibrary.singletonCache = clone(this.singletonCache)
 
     var aliases = this.aliases
@@ -388,6 +396,54 @@ Library.prototype.test =
       })
     })
   }
+
+Library.prototype.dump = function() {
+  console.log("library", JSON.stringify(this._dump(), null, 2))
+}
+
+Library.prototype._dump = function(startFromRoot) {
+  if (startFromRoot !== false && this != this.root) {
+    return this.root._dump()
+  }
+  var names = Object.keys(this.singletonCache)
+  if (this.parent) {
+    var parentNames = Object.keys(this.parent.singletonCache)
+  } else {
+    var parentNames = []
+  }
+  var newSingletons = difference(names, parentNames)
+
+  var resets = this.resets
+
+  var interestingModules = union(
+    newSingletons,
+    this.resets
+  )
+
+  if (startFromRoot !== false) {
+    interestingModules = union(interestingModules, Object.keys(this.modules))
+  }
+
+  var moduleLabels = interestingModules.map(
+    function(name) {
+      var wasReset = contains(name)(resets)
+
+      if (wasReset) {
+        return name+" (x)"
+      } else {
+        return name
+      }
+    }
+  )
+
+  var kids = this.children.map(function(child) { return child._dump(false) })
+
+  return {
+    id: this.id,
+    modules: moduleLabels,
+    children: kids
+  }
+}
 
 Library.prototype.test.only = test.only
 

@@ -397,6 +397,11 @@ Library.prototype.test =
     })
   }
 
+Library.prototype.test.only = test.only
+
+
+// Debugging
+
 Library.prototype.dump = function() {
   console.log("library", JSON.stringify(this._dump(), null, 2))
 }
@@ -445,7 +450,8 @@ Library.prototype._dump = function(startFromRoot) {
   }
 }
 
-Library.prototype.test.only = test.only
+
+// Exports
 
 var library = new Library()
 

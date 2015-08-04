@@ -415,7 +415,7 @@ Library.prototype._dump = function(startFromRoot) {
 
   var names = Object.keys(this.singletonCache)
 
-  var freshSingletons = filter(differentThanParent)(names)
+  var freshSingletonNames = filter(differentThanParent)(names)
 
   function differentThanParent(name) {
     if (!this.parent) { return true }
@@ -424,7 +424,7 @@ Library.prototype._dump = function(startFromRoot) {
 
   var resets = this.resets
 
-  var singletonLabels = freshSingletons.map(
+  var singletonLabels = freshSingletonNames.map(
     function(name) {
       var wasReset = contains(name)(resets)
 

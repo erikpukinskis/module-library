@@ -423,3 +423,16 @@ test(
   }
 )
 
+
+test(
+  "one library per require",
+
+  function(expect, done) {
+    function myRequire() {}
+    var one = require("./library")(myRequire)
+    var two = require("./library")(myRequire)
+
+    expect(one).to.equal(two)
+    done()
+  }
+)

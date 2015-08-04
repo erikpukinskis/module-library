@@ -457,9 +457,12 @@ var library = new Library()
 
 function libraryFactory(alternateRequire) {
 
-  var newLibrary = library.clone()
+  var newLibrary = alternateRequire.__nrtvLibrary
 
-  newLibrary.require = alternateRequire
+  if (!newLibrary) {
+    newLibrary = alternateRequire.__nrtvLibrary = library.clone()
+    newLibrary.require = alternateRequire
+  }
 
   return newLibrary
 }

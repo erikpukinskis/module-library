@@ -5,6 +5,7 @@
 var clone = require("clone")
 var ramda = require("ramda")
 var find = ramda.find
+var filter = ramda.filter
 var contains = ramda.contains
 var test = require("nrtv-test")
 var difference = ramda.difference
@@ -20,7 +21,7 @@ function Library() {
   this.singletonCache = {}
   this.aliases = {}
   this._id = Math.random().toString(36).split(".")[1].substr(0,4)
-  this.require = require  
+  this.require = require
 }
 
 Library.prototype.define =
@@ -410,26 +411,20 @@ Library.prototype._dump = function(startFromRoot) {
   if (startFromRoot !== false && this != this.root) {
     return this.root._dump()
   }
+
+
   var names = Object.keys(this.singletonCache)
-  if (this.parent) {
-    var parentNames = Object.keys(this.parent.singletonCache)
-  } else {
-    var parentNames = []
+
+  var freshSingletons = filter(differentThanParent)(names)
+
+  function differentThanParent(name) {
+    if (!this.parent) { return true }
+    return this.singletonCache[name] != this.parent.singletonCache[name]
   }
-  var newSingletons = difference(names, parentNames)
 
   var resets = this.resets
 
-  var interestingModules = union(
-    newSingletons,
-    this.resets
-  )
-
-  if (startFromRoot !== false) {
-    interestingModules = union(interestingModules, Object.keys(this.modules))
-  }
-
-  var moduleLabels = interestingModules.map(
+  var singletonLabels = freshSingletons.map(
     function(name) {
       var wasReset = contains(name)(resets)
 
@@ -443,11 +438,22 @@ Library.prototype._dump = function(startFromRoot) {
 
   var kids = this.children.map(function(child) { return child._dump(false) })
 
-  return {
-    id: this.id,
-    modules: moduleLabels,
-    children: kids
+  var dump = {
+    id: this.id
   }
+
+  if (startFromRoot !== false) {
+    dump.root = true
+    dump.modules = Object.keys(this.modules)
+  }
+
+  dump.singletons = singletonLabels
+
+  if (kids.length > 0) {
+    dump.children = kids
+  }
+
+  return dump
 }
 
 

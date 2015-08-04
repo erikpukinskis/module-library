@@ -404,32 +404,34 @@ Library.prototype.test.only = test.only
 // Debugging
 
 Library.prototype.dump = function() {
-  console.log("library", JSON.stringify(this._dump(), null, 2))
+  console.log("library", JSON.stringify(this._dump(true), null, 2))
+
+  if (this != this.root) {
+    this.root._dump(true)
+  }
 }
 
-Library.prototype._dump = function(startFromRoot) {
-  if (startFromRoot !== false && this != this.root) {
-    return this.root._dump()
-  }
-
+Library.prototype._dump = function(isRoot) {
 
   var names = Object.keys(this.singletonCache)
 
-  var freshSingletonNames = filter(differentThanParent)(names)
+  if (this.parent) {
+    names = filter(differentThanParent.bind(null, this, this.parent))(names)
+  }
 
-  function differentThanParent(name) {
-    if (!this.parent) { return true }
-    return this.singletonCache[name] != this.parent.singletonCache[name]
+  function differentThanParent(child, parent, name) {
+    if (!parent) { return true }
+    return child.singletonCache[name] != parent.singletonCache[name]
   }
 
   var resets = this.resets
 
-  var singletonLabels = freshSingletonNames.map(
+  var singletonLabels = names.map(
     function(name) {
       var wasReset = contains(name)(resets)
 
       if (wasReset) {
-        return name+" (x)"
+        return name+" [reset]"
       } else {
         return name
       }
@@ -442,7 +444,7 @@ Library.prototype._dump = function(startFromRoot) {
     id: this.id
   }
 
-  if (startFromRoot !== false) {
+  if (isRoot) {
     dump.root = true
     dump.modules = Object.keys(this.modules)
   }

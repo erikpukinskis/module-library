@@ -13,15 +13,19 @@ var union = ramda.union
 
 
 function Library() {
-  this.id = "library-"+Math.random().toString(36).substr(2,4)
+  this.id = "library-"+randomId()
   this.root = this
   this.children = []
   this.resets = []
   this.modules = {}
   this.singletonCache = {}
   this.aliases = {}
-  this._id = Math.random().toString(36).split(".")[1].substr(0,4)
+  this._id = randomId()
   this.require = require
+}
+
+function randomId() {
+  return Math.random().toString(36).split(".")[1].substr(0,4)  
 }
 
 Library.prototype.define =
@@ -285,6 +289,8 @@ Library.prototype._generateSingleton =
 
     var singleton = module.func.apply(null, deps)
 
+    singleton.__nrtvId = randomId()
+
     this.singletonCache[module.name] = singleton
 
     if (typeof singleton == "undefined") {
@@ -425,16 +431,23 @@ Library.prototype._dump = function(isRoot) {
   }
 
   var resets = this.resets
+  var singletons = this.singletonCache
 
   var singletonLabels = names.map(
     function(name) {
+      var label = name
+      var id = singletons[name].__nrtvId
       var wasReset = contains(name)(resets)
 
-      if (wasReset) {
-        return name+" [reset]"
-      } else {
-        return name
+      if (id) {
+        name += "-"+id
       }
+
+      if (wasReset) {
+        name += " [reset]"
+      }
+
+      return name
     }
   )
 

@@ -13,7 +13,7 @@ var union = ramda.union
 
 
 function Library() {
-  this.id = "library-"+randomId()
+  this.id = "library@"+randomId()
   this.root = this
   this.children = []
   this.resets = []
@@ -440,7 +440,7 @@ Library.prototype._dump = function(isRoot) {
       var wasReset = contains(name)(resets)
 
       if (id) {
-        name += "-"+id
+        name += "@"+id
       }
 
       if (wasReset) {

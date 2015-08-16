@@ -1,7 +1,7 @@
 var test = require("nrtv-test")
 var Library = require("./library").Library
 
-// test.only("resets work for modules exported through commonjs")
+test.only("dependencies of dependencies get reset too, if they depend on the resets")
 
 test(
   "define a module and then use it",
@@ -229,9 +229,8 @@ test(
 )
 
 
-
 test(
-  "dependencies of dependencies get reset too",
+  "stuff that uses the module you are resetting gets reset too",
 
   function(expect, done) {
     var library = new Library()
@@ -301,6 +300,29 @@ test(
   }
 )
 
+
+test(
+  "dependencies of dependencies get reset too, if they depend on the resets",
+
+  function(expect, done) {
+
+    var library = new Library()
+
+    library.define("a", function() {})
+
+    library.define("b", ["c"], function() {})
+
+    library.define("c", ["a"], function() {})
+
+    var resets = ["a"]
+
+    library._addDependenciesToResets(resets, ["b"])
+
+    expect(resets).to.include.members(["c"])
+
+    done()
+  }
+)
 
 test(
   "resets work for modules exported through commonjs",

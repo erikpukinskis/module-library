@@ -1,6 +1,6 @@
 {
   "name": "nrtv-library",
-  "version": "0.27.0",
+  "version": "0.28.0",
   "description": "Caches module singletons and orchestrates dependencies between them",
   "main": "library.js",
   "dependencies": {

@@ -4,22 +4,23 @@
 
 var clone = require("clone")
 var ramda = require("ramda")
-var find = ramda.find
 var filter = ramda.filter
 var contains = ramda.contains
+var uniq = ramda.uniq
+var intersection = ramda.intersection
 var test = require("nrtv-test")
 var difference = ramda.difference
-var union = ramda.union
-
+var Tree = require("nrtv-tree")
 
 function Library() {
-  this.id = "library@"+randomId()
+  this.id = "library@f"+randomId()
   this.root = this
   this.children = []
   this.resets = []
   this.modules = {}
   this.singletonCache = {}
   this.aliases = {}
+  this.dependencyTree = new Tree()
   this._id = randomId()
   this.require = require
 }
@@ -56,9 +57,15 @@ Library.prototype.define =
       func: func
     }
 
-    this.modules[name] = module
+    this.addModule(module)
 
     return module
+  }
+
+Library.prototype.addModule =
+  function(module) {
+    this.modules[module.name] = module
+    this.dependencyTree.add(module.name, module.dependencies)
   }
 
 Library.prototype.export =
@@ -72,6 +79,11 @@ Library.prototype.export =
 
     return singleton
   }
+
+Library.prototype.ref = function() {
+  return {__dependencyType: "self reference"}
+}
+
 
 Library.prototype.collective =
   function(object) {
@@ -116,111 +128,28 @@ Library.prototype.using =
       }
     }
 
-    this._addDependenciesToResets(resets, dependencies)
+    var tree = this.dependencyTree
+    debugger
+    resets = [].concat.apply(resets, resets.map(
+      function(name) {
+        debugger
+        return tree.ancestors(name)
+      }
+    ))
+    debugger
 
+    resets = intersection(
+      resets,
+      Object.keys(this.singletonCache)
+    )
 
     // If anything needs to be reset, we make a new library with the resets and call using on that.
 
-    if (resets.length) {
-      var library = this.cloneAndReset(resets)
-    } else {
-      var library = this
-    }
+    var library = this.cloneAndReset(resets)
 
     // At this point we have a properly reset library, and the dependencies should just be module names and collective IDs, so we just iterate through the dependencies and build the singletons.
 
     return func.apply(null, library._getArguments(dependencies, func))
-  }
-
-
-
-
-// Resets
-
-// There is some special work here when we want to reset a module's collective. We have to trace back through the dependency tree and find *every* module that depends on the things we're resetting.
-
-Library.prototype._addDependenciesToResets =
-  function(resets, dependencies) {
-
-    var oneToReset = resets.length > 0
-
-    var another = this._getAnotherToReset.bind(this, resets, dependencies)
-
-    while (oneToReset) {
-      oneToReset = find(another)(dependencies)
-
-      if (oneToReset) {
-        resets.push(oneToReset)
-      }
-    }
-  }
-
-Library.prototype._getAnotherToReset =
-  function(resets, dependenciesToReset, dependency) {
-
-  var alreadyReset = contains(dependency)(resets)
-
-  if (alreadyReset) {
-    return false
-  } else {
-    var deps = this._dependsOn(dependency, resets)
-    return deps
-  }
-}
-
-Library.prototype._dependsOn =
-  function(target, possibleDeps) {
-    var aliases = this.aliases
-
-    possibleDeps = possibleDeps.map(
-      function(dep) {
-        var alias = aliases[dep]
-        return alias || dep
-      }
-    )
-
-    if (alias = this.aliases[target]) {
-      return this._dependsOn(alias, possibleDeps)
-    }
-
-    isDirectMatch = contains(target)(possibleDeps)
-
-    if (isDirectMatch) {
-      return true
-    } else if (target.__dependencyType) {
-      return false
-    }
-
-    var module = this.modules[target]
-
-    if (!module) {
-      var singleton = this._getSingleton(target)
-      var alias = this.aliases[target]
-      if (alias) { target = alias }
-      module = this.modules[target]
-    }
-
-    if (singleton && !module) {
-
-      // It's just a regular commonjs module, so all of the dependency information has been destroyed and we can't do any fun stuff.
-
-      return false
-    }
-
-    if (!module) {
-      throw new Error("Trying to figure out what "+target+" depends on, but that doesn't seem like a module name we know about.")
-    }
-
-    var dependencies = module.dependencies
-
-    for(var i=0; i<dependencies.length; i++) {
-
-      var foundDeep = this._dependsOn(dependencies[i], possibleDeps)
-
-      if (foundDeep) { return true }
-    }
-
-    return false
   }
 
 
@@ -243,7 +172,11 @@ Library.prototype._getArguments =
 
 Library.prototype._getSingleton =
   function (identifier) {
-    if (identifier.__dependencyType == "collective") {
+    if (identifier.__dependencyType == "self reference") {
+
+      return this
+
+    } if (identifier.__dependencyType == "collective") {
 
       return this._getCollective(identifier)
 
@@ -289,13 +222,13 @@ Library.prototype._generateSingleton =
 
     var singleton = module.func.apply(null, deps)
 
-    singleton.__nrtvId = randomId()
-
-    this.singletonCache[module.name] = singleton
-
     if (typeof singleton == "undefined") {
       throw new Error("The generator for "+module.name+" didn't return anything.")
     }
+
+    singleton.__nrtvId = randomId()
+
+    this.singletonCache[module.name] = singleton
 
     return singleton
   }
@@ -306,7 +239,7 @@ Library.prototype._processCommonJsSingleton =
     if (module = singleton.__module) {
 
       if (!this.modules[module.name]) {
-        this.modules[module.name] = module
+        this.addModule(module)
       }
 
       if (module.name != path) {

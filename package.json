@@ -6,7 +6,8 @@
   "dependencies": {
     "ramda": "*",
     "clone": "*",
-    "nrtv-test": ">=0.11.0"
+    "nrtv-test": ">=0.11.0",
+    "nrtv-tree": "*"
   },
   "scripts": {
     "test": "node test.js"

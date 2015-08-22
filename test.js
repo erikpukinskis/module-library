@@ -1,7 +1,7 @@
 var test = require("nrtv-test")
 var Library = require("./library").Library
 
-test.only("dependencies of dependencies get reset too, if they depend on the resets")
+// test.only("dependencies of dependencies get reset too, if they depend on the resets")
 
 test(
   "define a module and then use it",
@@ -300,7 +300,6 @@ test(
   }
 )
 
-
 test(
   "dependencies of dependencies get reset too, if they depend on the resets",
 
@@ -308,17 +307,29 @@ test(
 
     var library = new Library()
 
-    library.define("a", function() {})
 
-    library.define("b", ["c"], function() {})
+    library.define("a", function() { return true })
 
-    library.define("c", ["a"], function() {})
+    library.define("b", ["c"], function() { return true })
 
-    var resets = ["a"]
+    library.define("c", ["a"], function() { return true })
 
-    library._addDependenciesToResets(resets, ["b"])
+    // We need to use these so the singletons get cached otherwise we won't bother resetting them:
 
-    expect(resets).to.include.members(["c"])
+    library.using(
+      ["a", "b", "c"],
+      function() {}
+    )
+
+    library.using(
+      [
+        library.reset("a"),
+        library.ref()
+      ],
+      function(a, library) {
+        expect(library.resets).to.include.members(["c"])
+      }
+    )
 
     done()
   }

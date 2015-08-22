@@ -468,3 +468,21 @@ test(
     done()
   }
 )
+
+
+test(
+  "exported nrtv modules keep their require functions around for commonjs requires",
+
+  function(expect, done) {
+    var library = new Library()
+
+    expect(function() {
+      library.using(
+        ["./nrtv_module_with_commonjs_requirement"],
+        function(stuff) {
+          done()
+        }
+      )
+    }).to.not.throw()
+  }
+)

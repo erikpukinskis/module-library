@@ -71,6 +71,8 @@ Library.prototype.export =
 
     var module = this.define.apply(this, arguments)
 
+    module.require = this.require
+
     var singleton = this._generateSingleton(module)
 
     singleton.__module = module
@@ -111,6 +113,9 @@ Library.prototype.using =
 
     var resets = []
 
+    if (!Array.isArray(dependencies)) {
+      throw new Error("You did library.using("+JSON.stringify(dependencies)+", ...) but we were expecting an array of dependencies there.")
+    }
     for(var i=0; i<dependencies.length; i++) {
 
       if (dependencies[i].__dependencyType == "reset") {
@@ -203,7 +208,7 @@ Library.prototype._getArguments =
   }
 
 Library.prototype._getSingleton =
-  function (identifier) {
+  function (identifier, alternateRequire) {
     if (identifier.__dependencyType == "self reference") {
 
       return this
@@ -227,11 +232,17 @@ Library.prototype._getSingleton =
     }
 
     try {
-      var singleton = this.require(identifier)
+
+      var require = alternateRequire || this.require
+
+      var singleton = require(identifier)
+
     } catch (e) {
+
       if (e.code == "MODULE_NOT_FOUND" && identifier.match(/[A-Z]/)) {
         e.message = e.message+" (is '"+identifier+"' capitalized right? usually modules are lowercase.)"
       }
+
       throw e
     }
 
@@ -249,7 +260,12 @@ Library.prototype._generateSingleton =
 
     for(var i=0; i<module.dependencies.length; i++) {
 
-      deps.push(this._getSingleton(module.dependencies[i]))
+      deps.push(
+        this._getSingleton(
+          module.dependencies[i],
+          module.require
+        )
+      )
     }
 
     var singleton = module.func.apply(null, deps)

@@ -1,7 +1,7 @@
 var test = require("nrtv-test")
 var Library = require("./library").Library
 
-// test.only("dependencies of dependencies get reset too, if they depend on the resets")
+// test.only("resets work for modules exported through commonjs")
 
 test(
   "define a module and then use it",
@@ -358,7 +358,6 @@ test(
       ],
       function(Flower, seed) {
         new Flower("Daryl")
-
         expect(seed.sprouts()).to
         .have.members([
           "Daryl P. Sprout"

@@ -20,7 +20,6 @@ function Library() {
   this.modules = {}
   this.singletonCache = {}
   this.aliases = {}
-  this.dependencyTree = new Tree()
   this._id = randomId()
   this.require = require
 }
@@ -65,7 +64,6 @@ Library.prototype.define =
 Library.prototype.addModule =
   function(module) {
     this.modules[module.name] = module
-    this.dependencyTree.add(module.name, module.dependencies)
   }
 
 Library.prototype.export =
@@ -121,22 +119,21 @@ Library.prototype.using =
 
         // If we do need to reset something, we note it and then change the dependency back to a regular name so that when we pass the dependencies to the new (reset) library it doesn't try to reset it again.
 
-        resets.push(name)
+        var alias = this.aliases[name]
+        resets.push(alias || name)
 
         dependencies[i] = name
 
       }
     }
 
-    var tree = this.dependencyTree
-    debugger
+    var tree = this._buildDependencyTree()
+
     resets = [].concat.apply(resets, resets.map(
       function(name) {
-        debugger
         return tree.ancestors(name)
       }
     ))
-    debugger
 
     resets = intersection(
       resets,
@@ -150,6 +147,41 @@ Library.prototype.using =
     // At this point we have a properly reset library, and the dependencies should just be module names and collective IDs, so we just iterate through the dependencies and build the singletons.
 
     return func.apply(null, library._getArguments(dependencies, func))
+  }
+
+Library.prototype._buildDependencyTree =
+  function() {
+    var tree = new Tree()
+
+    for(name in this.modules) {
+      tree.add(
+        name,
+        this._dealiasedDependencies(
+          this.modules[name].dependencies
+        )
+      )
+    }
+
+    return tree
+  }
+
+Library.prototype._dealiasedDependencies =
+  function(possiblyAliased) {
+    var dependencies = []
+    var aliases = this.aliases
+
+    possiblyAliased.map(
+      function(dependency) {
+
+        if (typeof(dependency) != "string") { return }
+
+        var alias = aliases[dependency]
+
+        dependencies.push(alias || dependency)
+      }
+    )
+
+    return dependencies
   }
 
 

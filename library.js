@@ -201,7 +201,17 @@ Library.prototype._getArguments =
 
     for(var i=0; i<dependencies.length; i++) {
 
-      args.push(this._getSingleton(dependencies[i]))
+      var singleton = this._getSingleton(dependencies[i])
+
+      var isObject = typeof singleton == "object"
+
+      var keyCount = isObject && Object.keys(singleton).length
+
+      if (isObject && keyCount < 1) {
+        throw new Error("The singleton for "+dependencies[i]+" is just an empty object. Did you maybe forget to set module.exports?")
+      }
+
+      args.push(singleton)
     }
 
     return args

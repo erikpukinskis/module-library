@@ -38,7 +38,7 @@ Library.prototype.define =
       var dependencies = []
     }
 
-    if (!name) {
+    if (!name || typeof name != "string") {
       throw new Error("library.define or export or whatever you did expects a name as the first argument, but you passed "+name)
     }
 

@@ -208,7 +208,7 @@ Library.prototype._getArguments =
       var keyCount = isObject && Object.keys(singleton).length
 
       if (isObject && keyCount < 1) {
-        throw new Error("The singleton for "+dependencies[i]+" is just an empty object. Did you maybe forget to set module.exports?")
+        throw new Error("The singleton for "+dependencies[i]+" is just an empty object. Did you maybe forget to do module.exports = ?")
       }
 
       args.push(singleton)

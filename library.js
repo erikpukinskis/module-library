@@ -481,4 +481,8 @@ function libraryFactory(alternateRequire) {
 
 libraryFactory.Library = Library
 
+libraryFactory.define = libraryFactory.using = function() {
+  throw new Error("You tried to use the library factory as a library. Did you remember to do require(\"nrtv-library\')(require)?")
+}
+
 module.exports = libraryFactory

@@ -3,11 +3,9 @@
 // Calls modules and orchestrates dependencies between them
 
 var clone = require("clone")
-var ramda = require("ramda")
-var filter = ramda.filter
-var contains = ramda.contains
-var uniq = ramda.uniq
-var intersection = ramda.intersection
+var filter = require("ramda").filter
+var contains = require("ramda").contains
+var intersection = require("ramda").intersection
 var test = require("nrtv-test")
 var difference = ramda.difference
 var Tree = require("nrtv-tree")

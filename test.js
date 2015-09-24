@@ -391,32 +391,6 @@ test(
 
 
 test(
-  "run test with dependencies",
-
-  function(expect, done) {
-    var library = new Library()
-
-    library.define(
-      "rabbit",
-      function() {
-        return "Bugs"
-      }
-    )
-
-    library.test(
-      "rabbit is Bugs",
-      ["rabbit"],
-      function(expect, innerDone, rabbit) {
-        expect(rabbit).to.equal("Bugs")
-        innerDone()
-        done()
-      }
-    )
-  }
-)
-
-
-test(
   "external require functions",
 
   function(expect, done) {

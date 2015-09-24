@@ -6,8 +6,6 @@ var clone = require("clone")
 var filter = require("ramda").filter
 var contains = require("ramda").contains
 var intersection = require("ramda").intersection
-var test = require("nrtv-test")
-var difference = ramda.difference
 var Tree = require("nrtv-tree")
 
 function Library() {
@@ -365,35 +363,6 @@ Library.prototype.cloneAndReset =
 
     return newLibrary
   }
-
-
-// Testing
-
-Library.prototype.test =
-  function(description, dependencies, runTest) {
-
-    var argumentsAccepted = runTest.length
-
-    var dependenciesProvided = dependencies.length
-
-    if (argumentsAccepted != dependenciesProvided+2) {
-      throw new Error("Your test function "+runTest+" should take "+(dependenciesProvided+2)+" arguments: expect, done, and one argument for each of the "+dependenciesProvided+" dependencies provided ("+dependencies+")")
-    }
-
-    this.using(dependencies, function() {
-
-      var deps = Array.prototype.slice.call(arguments)
-
-      test(description, function(expect, done) {
-
-        var args = [expect, done].concat(deps)
-
-        runTest.apply(null, args)
-      })
-    })
-  }
-
-Library.prototype.test.only = test.only
 
 
 // Debugging

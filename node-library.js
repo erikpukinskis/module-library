@@ -8,35 +8,6 @@ var filter = require("ramda").filter
 var contains = require("ramda").contains
 
 
-Library.prototype.toSource =
-  function() {
-    var source = "var Tree = ("+Tree.generateConstructor.toString()+")()\n\n"
-
-    source += "var Library = ("+generateConstructor.toString()+")(Tree)\n\n"
-
-    for(var name in this.modules) {
-      source += "library.define(\n"
-        + "  \""+name+"\",\n"
-        + "  "+dependenciesToSource(this.modules[name].dependencies)+",\n"
-        + this.modules[name].func.toString()+"\n"
-        + ")\n\n"
-    }
-
-    return source
-  }
-
-function dependenciesToSource(dependencies) {
-  return "["+dependencies.map(
-    function(dependency) {
-      if (dependency.__dependencyType == "collective") {
-        return "library.collective("+JSON.stringify(dependency.object)+")"
-      } else {
-        return JSON.stringify(dependency)
-      }
-    }
- ).join(", ")+"]"
-}
-
 // Debugging
 
 Library.prototype.dump = function() {

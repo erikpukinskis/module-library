@@ -468,19 +468,3 @@ test(
   }
 )
 
-
-
-test(
-  "converts to source",
-
-  function(expect, done) {
-    var library = new Library()
-    library.define(
-      "house",
-      [library.collective({chickens: []}), "turnips"],
-      function buildHouse() {
-      })
-    expect(library.toSource()).to.contain("Tree")
-    done()
-  }
-)

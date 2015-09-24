@@ -1,5 +1,5 @@
 var test = require("nrtv-test")
-var Library = require("./library").Library
+var Library = require("./node-library").Library
 
 // test.only("resets work for modules exported through commonjs")
 
@@ -398,7 +398,7 @@ test(
       return "boo ba doo"
     }
 
-    var library = require("./library")(alternateRequire)
+    var library = require("./node-library")(alternateRequire)
 
     library.using(
       ["this could be anything"],
@@ -415,8 +415,8 @@ test(
   "same library regardless of require",
 
   function(expect, done) {
-    var one = require("./library")(function() {})
-    var two =  require("./library")(function() {})
+    var one = require("./node-library")(function() {})
+    var two =  require("./node-library")(function() {})
 
     one.define("foo", function() {
       return "yup"
@@ -435,8 +435,8 @@ test(
 
   function(expect, done) {
     function myRequire() {}
-    var one = require("./library")(myRequire)
-    var two = require("./library")(myRequire)
+    var one = require("./node-library")(myRequire)
+    var two = require("./node-library")(myRequire)
 
     expect(one).to.equal(two)
     done()

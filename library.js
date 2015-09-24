@@ -20,6 +20,11 @@ function Library() {
   this.require = require
 }
 
+Library.loaders = []
+Library.useLoader = function(loader) {
+  Library.loaders.push(loader)
+}
+
 function randomId() {
   return Math.random().toString(36).split(".")[1].substr(0,4)  
 }
@@ -60,20 +65,6 @@ Library.prototype.define =
 Library.prototype.addModule =
   function(module) {
     this.modules[module.name] = module
-  }
-
-Library.prototype.export =
-  function(name) {
-
-    var module = this.define.apply(this, arguments)
-
-    module.require = this.require
-
-    var singleton = this._generateSingleton(module)
-
-    singleton.__module = module
-
-    return singleton
   }
 
 Library.prototype.ref = function() {
@@ -237,23 +228,16 @@ Library.prototype._getSingleton =
       return this._getSingleton(alias)
     }
 
-    try {
+    for(var i=0; i<Library.loaders.length; i++) {
+      var singleton = Library.loaders[i](
+        alternateRequire || this.require,
+        identifier,
+        this
+      )
 
-      var require = alternateRequire || this.require
-
-      var singleton = require(identifier)
-
-    } catch (e) {
-
-      if (e.code == "MODULE_NOT_FOUND" && identifier.match(/[A-Z]/)) {
-        e.message = e.message+" (is '"+identifier+"' capitalized right? usually modules are lowercase.)"
+      if (singleton) {
+        return singleton
       }
-
-      throw e
-    }
-
-    if (singleton) {
-      return this._processCommonJsSingleton(identifier, singleton)
     }
 
     throw new Error("You don't seem to have ever mentioned a "+identifier+" module to "+this._id)
@@ -285,36 +269,6 @@ Library.prototype._generateSingleton =
     this.singletonCache[module.name] = singleton
 
     return singleton
-  }
-
-Library.prototype._processCommonJsSingleton =
-  function(path, singleton) {
-
-    if (module = singleton.__module) {
-
-      if (!this.modules[module.name]) {
-        this.addModule(module)
-      }
-
-      if (module.name != path) {
-
-        var pathIsAName = !path.match(/\//)
-
-        if (pathIsAName) {
-          console.log(" ⚡ WARNING ⚡ The commonjs module", path, "returned a nrtv-library module called", module.name)
-        }
-
-        this.aliases[path] = module.name
-      }
-
-      return this._getSingleton(path)
-
-    } else {
-      this.singletonCache[path] = singleton
-
-      return singleton
-    }
-
   }
 
 
@@ -364,92 +318,4 @@ Library.prototype.cloneAndReset =
     return newLibrary
   }
 
-
-// Debugging
-
-Library.prototype.dump = function() {
-  console.log("library", JSON.stringify(this._dump(true), null, 2))
-
-  if (this != this.root) {
-    this.root._dump(true)
-  }
-}
-
-Library.prototype._dump = function(isRoot) {
-
-  var names = Object.keys(this.singletonCache)
-
-  if (this.parent) {
-    names = filter(differentThanParent.bind(null, this, this.parent))(names)
-  }
-
-  function differentThanParent(child, parent, name) {
-    if (!parent) { return true }
-    return child.singletonCache[name] != parent.singletonCache[name]
-  }
-
-  var resets = this.resets
-  var singletons = this.singletonCache
-
-  var singletonLabels = names.map(
-    function(name) {
-      var label = name
-      var id = singletons[name].__nrtvId
-      var wasReset = contains(name)(resets)
-
-      if (id) {
-        name += "@"+id
-      }
-
-      if (wasReset) {
-        name += " [reset]"
-      }
-
-      return name
-    }
-  )
-
-  var kids = this.children.map(function(child) { return child._dump(false) })
-
-  var dump = {
-    id: this.id
-  }
-
-  if (isRoot) {
-    dump.root = true
-    dump.modules = Object.keys(this.modules)
-  }
-
-  dump.singletons = singletonLabels
-
-  if (kids.length > 0) {
-    dump.children = kids
-  }
-
-  return dump
-}
-
-
-// Exports
-
-var library = new Library()
-
-function libraryFactory(alternateRequire) {
-
-  var newLibrary = alternateRequire.__nrtvLibrary
-
-  if (!newLibrary) {
-    newLibrary = alternateRequire.__nrtvLibrary = library.clone()
-    newLibrary.require = alternateRequire
-  }
-
-  return newLibrary
-}
-
-libraryFactory.Library = Library
-
-libraryFactory.define = libraryFactory.using = function() {
-  throw new Error("You tried to use the library factory as a library. Did you remember to do require(\"nrtv-library\')(require)?")
-}
-
-module.exports = libraryFactory
+module.exports = Library

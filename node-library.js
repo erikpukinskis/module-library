@@ -1,4 +1,13 @@
-var Library = require("./library")
+var generateConstructor = require("./library")
+
+var Library = generateConstructor(
+  require("clone"),
+  require("ramda").intersection,
+  require("nrtv-tree")
+)
+
+var contains = require("ramda").contains
+var filter = require("ramda").filter
 var contains = require("ramda").contains
 
 // Debugging
@@ -154,5 +163,7 @@ libraryFactory.Library = Library
 libraryFactory.define = libraryFactory.using = function() {
   throw new Error("You tried to use the library factory as a library. Did you remember to do require(\"nrtv-library\')(require)?")
 }
+
+libraryFactory.generateConstructor = generateConstructor
 
 module.exports = libraryFactory

@@ -1,7 +1,6 @@
 var test = require("nrtv-test")
 var Library = require("./node-library").Library
 
-// test.only("resets work for modules exported through commonjs")
 
 test(
   "define a module and then use it",
@@ -21,7 +20,6 @@ test(
     }
   }
 )
-
 
 
 
@@ -48,7 +46,6 @@ test(
     done()
   }
 )
-
 
 
 
@@ -84,7 +81,6 @@ test(
 
 
 
-
 test(
   "dependencies can be commonjs modules",
 
@@ -110,7 +106,6 @@ test(
     )
   }
 )
-
 
 
 
@@ -141,6 +136,7 @@ test(
 
   }
 )
+
 
 
 test(
@@ -229,6 +225,7 @@ test(
 )
 
 
+
 test(
   "stuff that uses the module you are resetting gets reset too",
 
@@ -281,6 +278,8 @@ test(
   }
 )
 
+
+
 test(
   "can export singleton for commonjs",
 
@@ -299,6 +298,8 @@ test(
     done()
   }
 )
+
+
 
 test(
   "dependencies of dependencies get reset too, if they depend on the resets",
@@ -335,6 +336,8 @@ test(
   }
 )
 
+
+
 test(
   "resets work for modules exported through commonjs",
 
@@ -369,6 +372,8 @@ test(
   }
 )
 
+
+
 test(
   "you can reset a module before using its neighbors",
 
@@ -386,7 +391,6 @@ test(
     )
   }
 )
-
 
 
 
@@ -411,6 +415,7 @@ test(
 )
 
 
+
 test(
   "same library regardless of require",
 
@@ -430,6 +435,7 @@ test(
 )
 
 
+
 test(
   "one library per require",
 
@@ -442,6 +448,7 @@ test(
     done()
   }
 )
+
 
 
 test(
@@ -458,5 +465,22 @@ test(
         }
       )
     }).to.not.throw()
+  }
+)
+
+
+
+test(
+  "converts to source",
+
+  function(expect, done) {
+    var library = new Library()
+    library.define(
+      "house",
+      [library.collective({chickens: []}), "turnips"],
+      function buildHouse() {
+      })
+    expect(library.toSource()).to.contain("Tree")
+    done()
   }
 )

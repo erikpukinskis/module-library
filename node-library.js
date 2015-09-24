@@ -1,7 +1,6 @@
 var generateConstructor = require("./library")
 
 var Library = generateConstructor(
-  require("clone"),
   require("nrtv-tree")
 )
 

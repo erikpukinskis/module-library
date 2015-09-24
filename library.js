@@ -3,7 +3,7 @@
 // Calls modules and orchestrates dependencies between them
 
 
-module.exports = function(clone, Tree) {
+module.exports = function(Tree) {
 
   function Library() {
     this.id = "library@f"+randomId()
@@ -81,6 +81,21 @@ module.exports = function(clone, Tree) {
     function(identifier) {
       return clone(identifier.object)
     }
+
+  function clone(object) {
+    var fresh = {}
+    for(var key in object) {
+      var value = object[key]
+      if (Array.isArray(value)) {
+        fresh[key] = [].concat(value)
+      } else if (typeof value == "object") {
+        fresh[key] = clone(value)
+      } else {
+        fresh[key] = value
+      }
+    }
+    return fresh
+  }
 
   Library.prototype.reset =
     function(name) {

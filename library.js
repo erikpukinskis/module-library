@@ -3,7 +3,7 @@
 // Calls modules and orchestrates dependencies between them
 
 
-module.exports = function(clone, intersection, Tree) {
+module.exports = function(clone, Tree) {
 
   function Library() {
     this.id = "library@f"+randomId()
@@ -124,7 +124,7 @@ module.exports = function(clone, intersection, Tree) {
         }
       ))
 
-      resets = intersection(
+      resets = intersect(
         resets,
         Object.keys(this.singletonCache)
       )
@@ -137,6 +137,22 @@ module.exports = function(clone, intersection, Tree) {
 
       return func.apply(null, library._getArguments(dependencies, func))
     }
+
+  function intersect(a, b) {
+    var t
+
+    if (b.length > a.length) {
+      t = b
+      b = a
+      a = t
+    }
+
+    return a.filter(function (e) {
+      if (b.indexOf(e) !== -1) {
+        return true
+      }
+    })
+  }
 
   Library.prototype._buildDependencyTree =
     function() {

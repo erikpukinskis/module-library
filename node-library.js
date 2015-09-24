@@ -2,7 +2,6 @@ var generateConstructor = require("./library")
 
 var Library = generateConstructor(
   require("clone"),
-  require("ramda").intersection,
   require("nrtv-tree")
 )
 

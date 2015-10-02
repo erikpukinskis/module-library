@@ -14,7 +14,7 @@ module.exports = function(Tree) {
     this.singletonCache = {}
     this.aliases = {}
     this._id = randomId()
-    this.require = require
+    this.require = Library.require
   }
 
   Library.loaders = []

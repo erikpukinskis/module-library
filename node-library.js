@@ -142,7 +142,9 @@ function processCommonJsSingleton(path, singleton, library) {
 
 
 
+Library.require = require
 var library = new Library()
+require.__nrtvLibrary = library
 
 function libraryFactory(alternateRequire) {
 

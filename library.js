@@ -105,6 +105,8 @@ module.exports = function(Tree) {
       }
     }
 
+  // Rename to library.use? #todo
+
   Library.prototype.using =
     function(dependencies, func) {
 

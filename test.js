@@ -468,3 +468,56 @@ test(
   }
 )
 
+
+
+test(
+  "Add static collective methods to a constructor",
+
+  function(expect, done) {
+
+    var library = new Library()
+
+    library.define(
+      "coffee",
+      [library.collective({})],
+      function(collective) {
+
+        function Coffee() {
+          this.sips = []
+        }
+
+        Coffee.prototype.sip =
+          function() {
+            this.sips++
+            return this.sips
+          }
+
+        library.collectivize(
+          Coffee,
+          collective,
+          function() {
+            return new Coffee()
+          },
+          ["sip"]
+        )
+
+        return Coffee
+      }
+    )
+
+    library.using(["coffee"],
+      function(coffee) {
+        coffee.sip()
+      }
+    )
+
+    library.using(["coffee"],
+      function(coffee) {
+        var sips = coffee.sip()
+        expect(sips).to.equal(2)
+        done()
+      }
+    )
+
+  }
+)

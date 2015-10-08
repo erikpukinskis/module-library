@@ -348,5 +348,31 @@ module.exports = function(Tree) {
       return newLibrary
     }
 
+  // library.makeConstructorActLikeAColectiveInstance
+
+  Library.prototype.collectivize =
+    function(constructor, collective, makeCollective, methods) {
+
+      var getCollective = function() {
+        var key = "__Collective"+constructor.name
+        if (!collective[key]) {
+          collective[key] = makeCollective()
+        }
+        return collective[key]
+      }
+
+      for(var i=0; i<methods.length; i++) {
+        var method = methods[i]
+
+        constructor[method] = applyIt.bind(null, method, getCollective)
+      }
+    }
+
+  function applyIt(method, getCollective) {
+    var instance = getCollective()
+    return instance[method].apply(instance, arguments)
+  }
+
+
   return Library
 }

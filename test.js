@@ -16,12 +16,33 @@ test(
 
     function expectBar(foo) {
       expect(foo).to.equal("bar")
-      expect(library.get("foo")).to.equal("bar")
       done()
     }
   }
 )
 
+
+
+test(
+  "getting individual singletons",
+  function(expect, done) {
+    var library = new Library()
+
+    library.define("fred",
+      function() {
+        return "red"
+      }
+    )
+
+    expect(library.get("fred")).to.equal("red")
+
+    // And again to test cached path:
+
+    expect(library.get("fred")).to.equal("red")
+
+    done()
+  }
+)
 
 
 test(

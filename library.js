@@ -237,7 +237,7 @@ module.exports = function(Tree) {
 
   Library.prototype.get =
     function(name) {
-      return this.singletonCache[name] || this._generateSingleton(name)
+      return this.singletonCache[name] || this._generateSingleton(this.modules[name])
     }
 
   Library.prototype._getSingleton =

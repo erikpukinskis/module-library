@@ -49,6 +49,7 @@ module.exports = function(Tree) {
       }
 
       var module = {
+        __isNrtvLibraryModule: true,
         name: name,
         dependencies: dependencies,
         func: func

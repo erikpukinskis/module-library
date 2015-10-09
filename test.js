@@ -16,6 +16,7 @@ test(
 
     function expectBar(foo) {
       expect(foo).to.equal("bar")
+      expect(library.get("foo")).to.equal("bar")
       done()
     }
   }

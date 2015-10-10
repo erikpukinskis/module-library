@@ -359,26 +359,23 @@ module.exports = function(Tree) {
   Library.prototype.collectivize =
     function(constructor, collective, makeCollective, methods) {
 
-      var getCollective = function() {
-        var key = "__Collective"+constructor.name
-        if (!collective[key]) {
-          collective[key] = makeCollective()
-        }
-        return collective[key]
-      }
-
       for(var i=0; i<methods.length; i++) {
         var method = methods[i]
 
-        constructor[method] = applyIt.bind(null, method, getCollective)
+        constructor[method] = callCollectiveMethod.bind(null, collective, makeCollective, method)
       }
     }
 
-  function applyIt(method, getCollective) {
-    var instance = getCollective()
-    return instance[method].apply(instance, arguments)
-  }
+  function callCollectiveMethod(collective, makeCollective, method) {
 
+    var remainingArgs = Array.prototype.slice.call(arguments, 3)
+
+    if (!collective.__nrtvCollectiveInstance) {
+      collective.__nrtvCollectiveInstance = makeCollective()
+    }
+
+    return collective.__nrtvCollectiveInstance[method].apply(collective.__nrtvCollectiveInstance, remainingArgs)
+  }
 
   return Library
 }

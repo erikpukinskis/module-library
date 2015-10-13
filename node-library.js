@@ -97,8 +97,15 @@ Library.useLoader(
 
     } catch (e) {
 
-      if (e.code == "MODULE_NOT_FOUND" && identifier.match(/[A-Z]/)) {
-        e.message = e.message+" (is '"+identifier+"' capitalized right? usually modules are lowercase.)"
+      var notFound = e.code == "MODULE_NOT_FOUND" 
+
+      if (notFound && identifier.match(/[A-Z]/)) {
+
+        e.message += " (is '"+identifier+"' capitalized right? usually modules are lowercase.)"
+
+      } else if (!e.message.match(/package\.json point/)) {
+
+        e.message += " (Is it in your node_modules folder? Does the \"main\" attribute in the package.json point to the right file?)"
       }
 
       throw e

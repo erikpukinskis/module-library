@@ -359,6 +359,13 @@ module.exports = function(Tree) {
   Library.prototype.collectivize =
     function(constructor, collective, makeCollective, methods) {
 
+      if (!methods) {
+        methods = makeCollective
+        makeCollective = function() {
+          return new constructor
+        }
+      }
+
       for(var i=0; i<methods.length; i++) {
         var method = methods[i]
 

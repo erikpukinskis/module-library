@@ -103,7 +103,7 @@ Library.useLoader(
 
         e.message += " (is '"+identifier+"' capitalized right? usually modules are lowercase.)"
 
-      } else if (!e.message.match(/package\.json point/)) {
+      } else if (notFound && !e.message.match(/package\.json point/)) {
 
         e.message += " (Is it in your node_modules folder? Does the \"main\" attribute in the package.json point to the right file?)"
       }

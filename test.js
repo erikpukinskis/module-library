@@ -246,52 +246,77 @@ test(
   }
 )
 
+var possibleMoods = ["quiet", "raucus", "weary", "enthusiastic"]
+
+function libraryWithQuail() {
+  var library = new Library()
+
+  library.define(
+    "quail",
+    [library.collective({})],
+    function(collective) {
+
+      if (!collective.mood) {
+        collective.mood = possibleMoods.pop()
+      }
+
+      function Quail() {
+        this.mood = collective.mood
+      }
+
+      return Quail
+    }
+  )
+
+  return library
+}
 
 
 test(
   "stuff that uses the module you are resetting gets reset too",
 
   function(expect, done) {
-    var library = new Library()
+
+    var library = libraryWithQuail()
 
     library.define(
-      "name",
-      [library.collective(
-        {names: []})
-      ],
-      function(collective) {
-        function name(person) {
-          collective.names.push(person)
+      "forest",
+      ["quail"],
+      function(Quail) {
+        function Forest() {
+          this.mood = new Quail().mood
         }
-        name.collective = function() {
-          return collective
-        }
-        return name
+
+        return Forest
       }
     )
 
-    library.define(
-      "parent",
-      ["name"],
-      function(name) {
-        function parent(person) {
-          name(person)
-        }
-        parent.collective = function() {
-          return name.collective()
-        }
+    library.using(
+      ["quail", "forest"],
+      function(Quail, Forest) {
 
-        return parent
+        // These should all start off with the same mood, coming off the birds' collective mood:
+
+        var bird = new Quail()
+        expect(bird.mood).to.equal("enthusiastic")
+        var forest = new Forest()
+        expect(forest.mood).to.equal("enthusiastic")
       }
     )
 
     library.using(
       [
-        library.reset("name"),
-        "parent"
+        library.reset("quail"),
+        "forest"
       ],
-      function(name, parent) {
-        expect(name.collective()).to.equal(parent.collective())
+      function(Quail, Forest) {
+
+        // Without resets, forest would still be working off that original mood, but since we reset Bird, and Forest depends on Bird, we are expecting forest to pick up on the reset:
+
+        var forest = new Forest()
+
+        expect(forest.mood).to.equal("weary")
+
         done()
       }
     )

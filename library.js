@@ -9,9 +9,9 @@ module.exports = function(Tree) {
     this.id = "library@f"+randomId()
     this.root = this
     this.children = []
-    this.resets = []
     this.modules = {}
     this.singletonCache = {}
+    this.collectiveCache = {}
     this.aliases = {}
     this._id = randomId()
     this.require = Library.require
@@ -79,21 +79,33 @@ module.exports = function(Tree) {
     }
 
   Library.prototype._getCollective =
-    function(identifier) {
-      return clone(identifier.object)
+    function(identifier, name) {
+      var cached = this.collectiveCache[name]
+      if (cached) { return cached }
+      var fresh = deepClone(identifier.object)
+      this.collectiveCache[name] = fresh
+      return fresh
     }
 
-  function clone(object) {
+  function deepClone(object) {
     var fresh = {}
     for(var key in object) {
       var value = object[key]
       if (Array.isArray(value)) {
         fresh[key] = [].concat(value)
       } else if (typeof value == "object") {
-        fresh[key] = clone(value)
+        fresh[key] = deepClone(value)
       } else {
         fresh[key] = value
       }
+    }
+    return fresh
+  }
+
+  function shallowClone(object) {
+    var fresh = {}
+    for(var key in object) {
+      fresh[key] = object[key]
     }
     return fresh
   }
@@ -113,7 +125,7 @@ module.exports = function(Tree) {
 
       // First we're going to check which of the dependencies need to have their collectives reset:
 
-      var resets = []
+      var collectiveResets = []
 
       if (!Array.isArray(dependencies)) {
         throw new Error("You did library.using("+JSON.stringify(dependencies)+", ...) but we were expecting an array of dependencies there.")
@@ -127,7 +139,7 @@ module.exports = function(Tree) {
           // If we do need to reset something, we note it and then change the dependency back to a regular name so that when we pass the dependencies to the new (reset) library it doesn't try to reset it again.
 
           var alias = this.aliases[name]
-          resets.push(alias || name)
+          collectiveResets.push(alias || name)
 
           dependencies[i] = name
 
@@ -136,27 +148,31 @@ module.exports = function(Tree) {
 
       var tree = this._buildDependencyTree()
 
-      resets = [].concat.apply(resets, resets.map(
-        function(name) {
-          return tree.ancestors(name)
-        }
-      ))
+      singletonResets = union(
+        collectiveResets.map(
+          function(name) {
+            return tree.ancestors(name)
+          }
+        ).concat(collectiveResets)
+      )
 
-      resets = intersect(
-        resets,
+      singletonResets = intersection(
+        singletonResets,
         Object.keys(this.singletonCache)
       )
 
       // If anything needs to be reset, we make a new library with the resets and call using on that.
 
-      var library = this.cloneAndReset(resets)
+      var library = this.cloneAndReset(collectiveResets, singletonResets)
 
       // At this point we have a properly reset library, and the dependencies should just be module names and collective IDs, so we just iterate through the dependencies and build the singletons.
 
       return func.apply(null, library._getArguments(dependencies, func))
     }
 
-  function intersect(a, b) {
+  var union = Function.prototype.apply.bind(Array.prototype.concat, [])
+
+  function intersection(a, b) {
     var t
 
     if (b.length > a.length) {
@@ -241,14 +257,14 @@ module.exports = function(Tree) {
     }
 
   Library.prototype._getSingleton =
-    function (identifier, alternateRequire) {
+    function (identifier, alternateRequire, forName) {
       if (identifier.__dependencyType == "self reference") {
 
         return this
 
       } if (identifier.__dependencyType == "collective") {
 
-        return this._getCollective(identifier)
+        return this._getCollective(identifier, forName)
 
       } else if (identifier in this.singletonCache) {
 
@@ -289,7 +305,8 @@ module.exports = function(Tree) {
         deps.push(
           this._getSingleton(
             module.dependencies[i],
-            module.require
+            module.require,
+            module.name
           )
         )
       }
@@ -320,6 +337,7 @@ module.exports = function(Tree) {
       newLibrary.root = this.root
       newLibrary.modules = this.modules
       newLibrary.singletonCache = this.singletonCache
+      newLibrary.collectiveCache = this.collectiveCache
       newLibrary.aliases = this.aliases
       newLibrary.require = this.require
 
@@ -327,19 +345,35 @@ module.exports = function(Tree) {
     }
 
   Library.prototype.cloneAndReset =
-    function(resets) {
+    function(collectiveResets, singletonResets) {
 
-      if (resets.length < 1) {
+      if (collectiveResets.length < 1) {
         return this
       }
 
       var newLibrary = this.clone()
-      newLibrary.resets = resets
-      newLibrary.singletonCache = clone(this.singletonCache)
+
+      newLibrary.singletonCache = shallowClone(this.singletonCache)
+
+      newLibrary.collectiveCache = shallowClone(this.collectiveCache)
+
+      // This aliases situation is getting out of hand. I don't think we even need to care about them here. Aliases should really just be confined to node-library. #todo
 
       var aliases = this.aliases
 
-      resets.forEach(function(name) {
+      collectiveResets.forEach(function(name) {
+
+        delete newLibrary.collectiveCache[name]
+
+        var alias = aliases[name]
+
+        if (alias) {
+          delete newLibrary.collectiveCache[alias]
+        }
+
+      })
+
+      singletonResets.forEach(function(name) {
 
         delete newLibrary.singletonCache[name]
 
@@ -353,8 +387,6 @@ module.exports = function(Tree) {
 
       return newLibrary
     }
-
-  // library.makeConstructorActLikeAColectiveInstance
 
   Library.prototype.collectivize =
     function(constructor, collective, makeCollective, methods) {

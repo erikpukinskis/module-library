@@ -246,10 +246,10 @@ test(
   }
 )
 
-var possibleMoods = ["quiet", "raucus", "weary", "enthusiastic"]
-
 function libraryWithQuail() {
   var library = new Library()
+
+  library._possibleMoods = ["sated", "jumpy", "quiet", "raucus", "weary", "enthusiastic"]
 
   library.define(
     "quail",
@@ -257,7 +257,7 @@ function libraryWithQuail() {
     function(collective) {
 
       if (!collective.mood) {
-        collective.mood = possibleMoods.pop()
+        collective.mood = library._possibleMoods.pop()
       }
 
       function Quail() {
@@ -270,6 +270,7 @@ function libraryWithQuail() {
 
   return library
 }
+
 
 
 test(
@@ -311,6 +312,8 @@ test(
       ],
       function(Quail, Forest) {
 
+        expect(new Quail().mood).to.equal("weary")
+
         // Without resets, forest would still be working off that original mood, but since we reset Bird, and Forest depends on Bird, we are expecting forest to pick up on the reset:
 
         var forest = new Forest()
@@ -325,6 +328,66 @@ test(
   }
 )
 
+
+
+test(
+  "reset ancestors singletons but not their collectives",
+
+  function(expect, done) {
+
+    var library = libraryWithQuail()
+
+    library.define(
+      "moody-forest",
+      [library.collective({}), "quail"],
+      function(collective, Quail) {
+
+        // The moody forests have a collective tree mood of their own. And we want to make sure that even if we reset a dependency (Bird) we don't reset the forest mood unless we explicitly ask for that.
+
+        if (!collective.treeMood) {
+          collective.treeMood = library._possibleMoods.pop()
+        }
+
+        function MoodyForest() {
+          new Quail()
+          this.treeMood = collective.treeMood
+        }
+
+        return MoodyForest
+      }
+    )
+
+    library.using(
+      ["moody-forest"],
+      function(MoodyForest) {
+        var forest = new MoodyForest()
+
+        // We took enthusiastic for the birds, so now the trees should get weary:
+
+        expect(forest.treeMood).to.equal("weary")
+      }
+    )
+
+    library.using(
+      [
+        library.reset("quail"),
+        "moody-forest"
+      ],
+      function(Quail, MoodyForest) {
+        var forest = new MoodyForest()
+
+        // Forests should be the same, because their collective mood shouldn't have been reset, even though the bird collective was:
+
+        expect(forest.treeMood).to.equal("weary")
+
+        expect(new Quail().mood).to.equal("raucus")
+
+        done()
+      }
+    )
+
+  }
+)
 
 
 test(
@@ -360,22 +423,41 @@ test(
 
     library.define("b", ["c"], function() { return true })
 
-    library.define("c", ["a"], function() { return true })
+    library.define("c", ["a"],
+      function() {
+        var count = 0
+
+        function increment() {
+          return ++count
+        }
+
+        return increment
+      }
+    )
 
     // We need to use these so the singletons get cached otherwise we won't bother resetting them:
 
     library.using(
       ["a", "b", "c"],
-      function() {}
+      function(a, b, c) {
+        expect(c()).to.equal(1)
+      }
+    )
+
+    library.using(
+      ["a", "c"],
+      function(a, c) {
+        expect(c()).to.equal(2)
+      }
     )
 
     library.using(
       [
         library.reset("a"),
-        library.ref()
+        "c"
       ],
-      function(a, library) {
-        expect(library.resets).to.include.members(["c"])
+      function(a, c) {
+        expect(c()).to.equal(1)
       }
     )
 

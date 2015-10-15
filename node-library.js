@@ -31,21 +31,15 @@ Library.prototype._dump = function(isRoot) {
     return child.singletonCache[name] != parent.singletonCache[name]
   }
 
-  var resets = this.resets
   var singletons = this.singletonCache
 
   var singletonLabels = names.map(
     function(name) {
       var label = name
       var id = singletons[name].__nrtvId
-      var wasReset = contains(name)(resets)
 
       if (id) {
         name += "@"+id
-      }
-
-      if (wasReset) {
-        name += " [reset]"
       }
 
       return name

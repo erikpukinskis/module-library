@@ -10,8 +10,8 @@ var contains = require("ramda").contains
 
 // Debugging
 
-Library.prototype.dump = function() {
-  console.log("library", JSON.stringify(this._dump(true), null, 2))
+Library.prototype.dump = function(logger) {
+  (logger || console.log)("library", JSON.stringify(this._dump(true), null, 2))
 
   if (this != this.root) {
     this.root._dump(true)

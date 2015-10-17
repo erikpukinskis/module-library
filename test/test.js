@@ -324,7 +324,9 @@ test(
       }
     )
 
-  library.dump()
+    // Just want to make sure we don't break this code path:
+    
+    library.dump(function() {})
   }
 )
 

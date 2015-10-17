@@ -148,10 +148,19 @@ module.exports = function(Tree) {
 
       var tree = this._buildDependencyTree()
 
-      singletonResets = union(
+      var _this = this
+
+      singletonResets = concat(
         collectiveResets.map(
           function(name) {
-            return tree.ancestors(name)
+
+            // This maybe only needs to be ancestors which are in the using args? And then update the error in assertNoCollective? #todo
+
+            var ancestors = tree.ancestors(name)
+
+            _this._assertNoCollectivizedAncestors(ancestors, name, collectiveResets)
+
+            return ancestors
           }
         ).concat(collectiveResets)
       )
@@ -170,7 +179,24 @@ module.exports = function(Tree) {
       return func.apply(null, library._getArguments(dependencies, func))
     }
 
-  var union = Function.prototype.apply.bind(Array.prototype.concat, [])
+  Library.prototype._assertNoCollectivizedAncestors = function(ancestors, child, resets) {
+
+    for(var i=0; i<ancestors.length; i++) {
+      var ancestor = ancestors[i]
+
+      if (ancestor in resets) { 
+        continue
+      }
+
+      var singleton = this._getSingleton(ancestor)
+
+      if (singleton.__wasNrtvLibraryCollectivized) {
+        throw new Error("You asked us to reset "+child+", but "+ancestor+" depends on it and has a collectivized singleton. You may want to split "+ancestor+" into two parts, one which uses "+child+" and another which has the collective instance methods, each their own module.")
+      }
+    }
+  }
+
+  var concat = Function.prototype.apply.bind(Array.prototype.concat, [])
 
   function intersection(a, b) {
     var t
@@ -403,6 +429,8 @@ module.exports = function(Tree) {
 
         constructor[method] = callCollectiveMethod.bind(null, collective, makeCollective, method)
       }
+
+      constructor.__wasNrtvLibraryCollectivized = true
     }
 
   function callCollectiveMethod(collective, makeCollective, method) {

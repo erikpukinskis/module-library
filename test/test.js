@@ -1,5 +1,5 @@
 var test = require("nrtv-test")
-var Library = require("./node-library").Library
+var Library = require("../node-library").Library
 
 
 test(
@@ -531,7 +531,7 @@ test(
       return "boo ba doo"
     }
 
-    var library = require("./node-library")(alternateRequire)
+    var library = require("../node-library")(alternateRequire)
 
     library.using(
       ["this could be anything"],
@@ -549,8 +549,8 @@ test(
   "same library regardless of require",
 
   function(expect, done) {
-    var one = require("./node-library")(function() {})
-    var two =  require("./node-library")(function() {})
+    var one = require("../node-library")(function() {})
+    var two =  require("../node-library")(function() {})
 
     one.define("foo", function() {
       return "yup"
@@ -570,8 +570,8 @@ test(
 
   function(expect, done) {
     function myRequire() {}
-    var one = require("./node-library")(myRequire)
-    var two = require("./node-library")(myRequire)
+    var one = require("../node-library")(myRequire)
+    var two = require("../node-library")(myRequire)
 
     expect(one).to.equal(two)
     done()
@@ -650,3 +650,5 @@ test(
 
   }
 )
+
+

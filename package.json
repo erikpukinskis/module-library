@@ -9,7 +9,7 @@
     "nrtv-tree": "*"
   },
   "scripts": {
-    "test": "node test.js"
+    "test": "node test/"
   },
   "license": "ISC",
   "homepage": "https://github.com/erikpukinskis/nrtv-library",

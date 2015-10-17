@@ -3,135 +3,6 @@ var Library = require("../node-library").Library
 
 
 test(
-  "define a module and then use it",
-
-  function(expect, done) {
-    var library = new Library()
-
-    library.define("foo", 
-      function() { return "bar" }
-    )
-
-    library.using(["foo"], expectBar)
-
-    function expectBar(foo) {
-      expect(foo).to.equal("bar")
-      done()
-    }
-  }
-)
-
-
-
-test(
-  "getting individual singletons",
-  function(expect, done) {
-    var library = new Library()
-
-    library.define("fred",
-      function() {
-        return "red"
-      }
-    )
-
-    expect(library.get("fred")).to.equal("red")
-
-    // And again to test cached path:
-
-    expect(library.get("fred")).to.equal("red")
-
-    done()
-  }
-)
-
-
-test(
-  "don't run the generator every time",
-
-  function(expect, done) {
-    var library = new Library()
-    var count = 0
-
-    library.define("foo", 
-      function() { return count++ }
-    )
-
-    library.using(["foo"], 
-      function() {}
-    )
-
-    library.using(["foo"],
-      function() {}
-    )
-
-    expect(count).to.equal(1)
-    done()
-  }
-)
-
-
-
-test(
-  "definitions can have dependencies",
-
-  function(expect, done) {
-    var library = new Library()
-    var count = 0
-
-    library.define("turtle", 
-      function() {
-        return "in the sun"
-      }
-    )
-
-    library.define(
-      "rider",
-      ["turtle"],
-      function(turtle) {
-        return "rider rides " + turtle
-      }
-    )
-
-    library.using(["rider"], 
-      function(rider) {
-        expect(rider).to.equal("rider rides in the sun")
-        done()
-      }
-    )
-  }
-)
-
-
-
-test(
-  "dependencies can be commonjs modules",
-
-  function(expect, done) {
-    var library = new Library()
-
-    library.define(
-      "finder",
-      ["ramda"],
-      function(rambda) {
-        return rambda.contains
-      }
-    )
-
-    library.using(
-      ["finder", "ramda"],
-      function(finder, rambda) {
-        expect(finder).to.be.a("function")
-        expect(rambda.find).to.be.a("function")
-        done()
-
-      }
-    )
-  }
-)
-
-
-
-test(
   "modules have collective objects",
 
   function(expect, done) {
@@ -158,7 +29,6 @@ test(
 
   }
 )
-
 
 
 test(
@@ -246,6 +116,9 @@ test(
   }
 )
 
+
+// The following two tests are based off this same base:
+
 function libraryWithQuail() {
   var library = new Library()
 
@@ -270,7 +143,6 @@ function libraryWithQuail() {
 
   return library
 }
-
 
 
 test(
@@ -325,11 +197,10 @@ test(
     )
 
     // Just want to make sure we don't break this code path:
-    
+
     library.dump(function() {})
   }
 )
-
 
 
 test(
@@ -393,27 +264,6 @@ test(
 
 
 test(
-  "can export singleton for commonjs",
-
-  function(expect, done) {
-    var library = new Library()
-
-    var singleton = library.export(
-      "foo",
-      function() {
-        return "bar"
-      }
-    )
-
-    expect(singleton).to.equal("bar")
-
-    done()
-  }
-)
-
-
-
-test(
   "dependencies of dependencies get reset too, if they depend on the resets",
 
   function(expect, done) {
@@ -468,139 +318,6 @@ test(
 )
 
 
-
-test(
-  "resets work for modules exported through commonjs",
-
-  function(expect, done) {
-    var library = new Library()
-
-    library.using(
-      ["./flower", "./seed"],
-      function(Flower, seed) {
-        new Flower("Danube")
-        expect(seed.sprouts()).to.have.members(["Danube P. Sprout"])
-      }
-    )
-
-    // we weren't resetting "seed" before when we try to reset "./seed". That suggests to me that now flower and seed have different seed singletons.
-
-    library.using(
-      [
-        "./flower",
-        library.reset("./seed")
-      ],
-      function(Flower, seed) {
-        new Flower("Daryl")
-        expect(seed.sprouts()).to
-        .have.members([
-          "Daryl P. Sprout"
-        ])
-
-        done()
-      }
-    )
-  }
-)
-
-
-
-test(
-  "you can reset a module before using its neighbors",
-
-  function(expect, done) {
-    var library = new Library()
-
-    library.using(
-      [
-        "./flower",
-        library.reset("./seed")
-      ],
-      function(Flower, seed) {
-        done()
-      }
-    )
-  }
-)
-
-
-
-test(
-  "external require functions",
-
-  function(expect, done) {
-    function alternateRequire() {
-      return "boo ba doo"
-    }
-
-    var library = require("../node-library")(alternateRequire)
-
-    library.using(
-      ["this could be anything"],
-      function(boo) {
-        expect(boo).to.equal("boo ba doo")
-        done()
-      }
-    )
-  }
-)
-
-
-
-test(
-  "same library regardless of require",
-
-  function(expect, done) {
-    var one = require("../node-library")(function() {})
-    var two =  require("../node-library")(function() {})
-
-    one.define("foo", function() {
-      return "yup"
-    })
-
-    two.using(["foo"], function(foo) {
-      expect(foo).to.equal("yup")
-      done()
-    })
-  }
-)
-
-
-
-test(
-  "one library per require",
-
-  function(expect, done) {
-    function myRequire() {}
-    var one = require("../node-library")(myRequire)
-    var two = require("../node-library")(myRequire)
-
-    expect(one).to.equal(two)
-    done()
-  }
-)
-
-
-
-test(
-  "exported nrtv modules keep their require functions around for commonjs requires",
-
-  function(expect, done) {
-    var library = new Library()
-
-    expect(function() {
-      library.using(
-        ["./nrtv_module_with_commonjs_requirement"],
-        function(stuff) {
-          done()
-        }
-      )
-    }).to.not.throw()
-  }
-)
-
-
-
 test(
   "Add static collective methods to a constructor",
 
@@ -652,5 +369,3 @@ test(
 
   }
 )
-
-

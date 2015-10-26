@@ -134,6 +134,13 @@ function processCommonJsSingleton(path, singleton, library) {
     return library._getSingleton(path)
 
   } else {
+    var isObject = typeof singleton == "object"
+    var isEmpty = isObject && Object.keys(singleton).length < 1
+
+    if (isObject && isEmpty) {
+      throw new Error("The "+path+" module just returned an empty object. Did you forget to do module.exports = library.export?")
+    }
+
     library.singletonCache[path] = singleton
 
     return singleton

@@ -114,6 +114,9 @@ Library.useLoader(
 
 function processCommonJsSingleton(path, singleton, library) {
 
+  if (singleton.__isNrtvLibraryModule == true) {
+    throw new Error("Commonjs module "+path+" exported a nrtv module ("+singleton.name+"). Did you do module.exports = library.define instead of module.exports library.export?")
+  }
   if (module = singleton.__module) {
 
     if (!library.modules[module.name]) {

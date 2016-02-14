@@ -344,6 +344,7 @@ module.exports = function(Tree) {
       }
 
       singleton.__nrtvId = randomId()
+      singleton.__nrtvModule = module
 
       this.singletonCache[module.name] = singleton
 

@@ -318,7 +318,7 @@ module.exports = function(Tree) {
         }
       }
 
-      throw new Error("You don't seem to have ever mentioned a "+identifier+" module to "+this._id)
+      throw new Error("You don't seem to have ever mentioned a "+identifier+" module to library "+this._id)
 
     }
 

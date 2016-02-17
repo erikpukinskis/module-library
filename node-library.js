@@ -173,6 +173,6 @@ libraryFactory.define = libraryFactory.using = function() {
   throw new Error("You tried to use the library factory as a library. Did you remember to do require(\"nrtv-library\')(require)?")
 }
 
-libraryFactory.generateConstructor = generateConstructor
+libraryFactory.generator = generateConstructor
 
 module.exports = libraryFactory

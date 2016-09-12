@@ -163,6 +163,10 @@ require.__nrtvLibrary = library
 
 function libraryFactory(alternateRequire) {
 
+  if (!alternateRequire) {
+    throw new Error("You need to pass require to nrtv-library. Like this: var library = require(\"nrtv-library\")(require)")
+  }
+
   var newLibrary = alternateRequire.__nrtvLibrary
 
   if (!newLibrary) {
@@ -175,7 +179,7 @@ function libraryFactory(alternateRequire) {
 
 libraryFactory.Library = Library
 
-libraryFactory.define = libraryFactory.using = function() {
+libraryFactory.define = libraryFactory.export = libraryFactory.using = function() {
   throw new Error("You tried to use the library factory as a library. Did you remember to do require(\"nrtv-library\')(require)?")
 }
 

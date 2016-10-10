@@ -69,6 +69,21 @@ Library.prototype._dump = function(isRoot) {
 
 // Exports
 
+Library.prototype.import =
+  function(name) {
+    var alias = this.aliases[name]
+    if (this.modules[name] || this.modules[alias]) {
+      return
+    }
+    var singleton = this.require(name)
+
+    var nrtvName = singleton.__nrtvModule && singleton.__nrtvModule.name
+
+    if (nrtvName != name) {
+      this.aliases[name] = nrtvName
+    }
+  }
+
 Library.prototype.export =
   function(name) {
 

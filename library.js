@@ -36,6 +36,8 @@ module.exports = function(Tree) {
         var dependencies = []
       }
 
+      if (this.modules[name]) { return }
+
       if (!name || typeof name != "string") {
         throw new Error("library.define or export or whatever you did expects a name as the first argument, but you passed "+name)
       }
@@ -322,8 +324,14 @@ module.exports = function(Tree) {
 
     }
 
+  var generating = {}
+
   Library.prototype._generateSingleton =
     function(module) {
+      if (generating[module.name]) {
+        throw new Error("Tried to generate "+module.name+" while generating "+module.name+". Seems an infinite loop?")
+      }
+      generating[module.name] = true
       var deps = []
 
       for(var i=0; i<module.dependencies.length; i++) {
@@ -348,6 +356,7 @@ module.exports = function(Tree) {
 
       this.singletonCache[module.name] = singleton
 
+      generating[module.name] = false
       return singleton
     }
 

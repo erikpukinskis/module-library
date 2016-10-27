@@ -281,6 +281,9 @@ module.exports = function(Tree) {
 
   Library.prototype.get =
     function(name) {
+      if (!this.modules[name]) {
+        throw new Error("Tried to library.get a module called "+name+" but couldn't find any with that name")
+      }
       return this.singletonCache[name] || this._generateSingleton(this.modules[name])
     }
 

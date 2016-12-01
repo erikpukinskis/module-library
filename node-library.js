@@ -1,12 +1,7 @@
 var generateConstructor = require("./library")
 
-var Tree = require("nrtv-tree")
+var Tree = require("string-tree")
 var Library = generateConstructor(Tree)
-
-var contains = require("ramda").contains
-var filter = require("ramda").filter
-var contains = require("ramda").contains
-
 
 // Debugging
 
@@ -23,7 +18,7 @@ Library.prototype._dump = function(isRoot) {
   var names = Object.keys(this.singletonCache)
 
   if (this.parent) {
-    names = filter(differentThanParent.bind(null, this, this.parent))(names)
+    names = names.filter(differentThanParent.bind(null, this, this.parent))
   }
 
   function differentThanParent(child, parent, name) {
@@ -147,7 +142,7 @@ function processCommonJsSingleton(path, singleton, library) {
       var pathIsAName = !path.match(/\//)
 
       if (pathIsAName) {
-        console.log(" ⚡ WARNING ⚡ The commonjs module", path, "returned a nrtv-library module called", module.name)
+        console.log(" ⚡ WARNING ⚡ The commonjs module", path, "returned a module-library module called", module.name)
       }
 
       library.aliases[path] = module.name
@@ -179,7 +174,7 @@ require.__nrtvLibrary = library
 function libraryFactory(alternateRequire) {
 
   if (!alternateRequire) {
-    throw new Error("You need to pass require to nrtv-library. Like this: var library = require(\"nrtv-library\")(require)")
+    throw new Error("You need to pass require to module-library. Like this: var library = require(\"module-library\")(require)")
   }
 
   var newLibrary = alternateRequire.__nrtvLibrary
@@ -195,7 +190,7 @@ function libraryFactory(alternateRequire) {
 libraryFactory.Library = Library
 
 libraryFactory.define = libraryFactory.export = libraryFactory.using = function() {
-  throw new Error("You tried to use the library factory as a library. Did you remember to do require(\"nrtv-library\')(require)?")
+  throw new Error("You tried to use the library factory as a library. Did you remember to do require(\"module-library\')(require)?")
 }
 
 libraryFactory.generator = generateConstructor

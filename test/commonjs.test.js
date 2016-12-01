@@ -1,25 +1,25 @@
-var test = require("nrtv-test")
-var Library = require("../node-library").Library
+var runTest = require("run-test")
+var Library = require("../").Library
 
-test(
+runTest(
   "dependencies can be commonjs modules",
 
   function(expect, done) {
     var library = new Library()
 
     library.define(
-      "finder",
-      ["ramda"],
-      function(rambda) {
-        return rambda.contains
+      "to-query-string",
+      ["querystring"],
+      function(querystring) {
+        return querystring.stringify
       }
     )
 
     library.using(
-      ["finder", "ramda"],
-      function(finder, rambda) {
-        expect(finder).to.be.a("function")
-        expect(rambda.find).to.be.a("function")
+      ["to-query-string", "http"],
+      function(toQueryString, http) {
+        expect(toQueryString).to.be.a("function")
+        expect(http.request).to.be.a("function")
         done()
 
       }
@@ -28,7 +28,7 @@ test(
 )
 
 
-test(
+runTest(
   "can export singleton for commonjs",
 
   function(expect, done) {
@@ -47,7 +47,7 @@ test(
   }
 )
 
-test(
+runTest(
   "resets work for modules exported through commonjs",
 
   function(expect, done) {
@@ -83,7 +83,7 @@ test(
 
 
 
-test(
+runTest(
   "you can reset a module before using its neighbors",
 
   function(expect, done) {
@@ -103,7 +103,7 @@ test(
 
 
 
-test(
+runTest(
   "external require functions",
 
   function(expect, done) {
@@ -125,7 +125,7 @@ test(
 
 
 
-test(
+runTest(
   "same library regardless of require",
 
   function(expect, done) {
@@ -145,7 +145,7 @@ test(
 
 
 
-test(
+runTest(
   "one library per require",
 
   function(expect, done) {
@@ -160,7 +160,7 @@ test(
 
 
 
-test(
+runTest(
   "exported nrtv modules keep their require functions around for commonjs requires",
 
   function(expect, done) {

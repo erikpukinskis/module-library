@@ -1,8 +1,8 @@
-var test = require("nrtv-test")
-var Library = require("../node-library").Library
+var runTest = require("run-test")
+var Library = require("../").Library
 
 
-test(
+runTest(
   "modules have collective objects",
 
   function(expect, done) {
@@ -31,7 +31,7 @@ test(
 )
 
 
-test(
+runTest(
   "collectives can be reset by the user",
 
   function(expect, done) {
@@ -145,7 +145,7 @@ function libraryWithQuail() {
 }
 
 
-test(
+runTest(
   "stuff that uses the module you are resetting gets reset too",
 
   function(expect, done) {
@@ -203,7 +203,7 @@ test(
 )
 
 
-test(
+runTest(
   "reset ancestors singletons but not their collectives",
 
   function(expect, done) {
@@ -263,7 +263,7 @@ test(
 )
 
 
-test(
+runTest(
   "dependencies of dependencies get reset too, if they depend on the resets",
 
   function(expect, done) {
@@ -318,7 +318,7 @@ test(
 )
 
 
-test(
+runTest(
   "Add static collective methods to a constructor",
 
   function(expect, done) {

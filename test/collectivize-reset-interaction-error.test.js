@@ -1,6 +1,6 @@
-var test = require("nrtv-test")(require)
+var runTest = require("run-test")(require)
 
-test.using(
+runTest(
   "library.using() throws an error if you try to reset a dependency of a module with a collectivized singleton",
   ["../node-library"],
   function(expect, done, libraryFactory) {

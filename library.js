@@ -3,7 +3,7 @@
 // Calls modules and orchestrates dependencies between them
 
 
-module.exports = function(Tree) {
+module.exports = function(StringTree) {
 
   function Library() {
     this.id = "library@f"+randomId()
@@ -218,7 +218,7 @@ module.exports = function(Tree) {
 
   Library.prototype._buildDependencyTree =
     function() {
-      var tree = new Tree()
+      var tree = new StringTree()
 
       for(name in this.modules) {
         tree.add(

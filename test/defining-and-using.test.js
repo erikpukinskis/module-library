@@ -1,8 +1,8 @@
-var test = require("nrtv-test")
-var Library = require("../node-library").Library
+var runTest = require("run-test")
+var Library = require("../").Library
 
 
-test(
+runTest(
   "define a module and then use it",
 
   function(expect, done) {
@@ -23,7 +23,7 @@ test(
 
 
 
-test(
+runTest(
   "getting individual singletons",
   function(expect, done) {
     var library = new Library()
@@ -45,7 +45,7 @@ test(
 )
 
 
-test(
+runTest(
   "don't run the generator every time",
 
   function(expect, done) {
@@ -71,7 +71,7 @@ test(
 
 
 
-test(
+runTest(
   "definitions can have dependencies",
 
   function(expect, done) {

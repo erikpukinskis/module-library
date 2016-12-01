@@ -1,6 +1,6 @@
 Most build systems use config files to define dependencies separate from code.
 
-Module-library allows you to define your dependencies in code:
+**module-library** allows you to define your dependencies in code:
 
 ```javascript
 var library = require("module-library")(require)

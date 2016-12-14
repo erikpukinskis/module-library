@@ -1,4 +1,4 @@
-var library = require("../library")(require)
+var library = require("./node-library")(require)
 
 module.exports = library.export(
   "seed",

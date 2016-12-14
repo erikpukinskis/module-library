@@ -15,6 +15,7 @@ module.exports = function(StringTree) {
     this.aliases = {}
     this._id = randomId()
     this.require = Library.require
+    this.__isNrtvLibrary = true
   }
 
   Library.loaders = []
@@ -36,7 +37,12 @@ module.exports = function(StringTree) {
         var dependencies = []
       }
 
-      if (this.modules[name]) { return }
+      var alreadyLoaded = this.modules[name]
+
+      if (alreadyLoaded) {
+        console.log("⚡⚡⚡ WARNING ⚡⚡⚡ "+name+" was loaded into the library twice. Seems odd?")
+        return alreadyLoaded
+      }
 
       if (!name || typeof name != "string") {
         throw new Error("library.define or export or whatever you did expects a name as the first argument, but you passed "+name)

@@ -433,6 +433,13 @@ module.exports = function(StringTree) {
       return newLibrary
     }
 
+  Library.prototype.setPath = function(path, name) {
+    if (!path.match(name)) {
+      throw new Error("Module name "+name+" doesn't seem like a substring of path "+path)
+    }
+    this.aliases[path] = name
+  }
+
   Library.prototype.collectivize =
     function(constructor, collective, makeCollective, methods) {
 

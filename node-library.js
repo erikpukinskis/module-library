@@ -130,7 +130,7 @@ function processCommonJsSingleton(path, singleton, library) {
         console.log(" ⚡ WARNING ⚡ The commonjs module", path, "returned a module-library module called", module.name)
       }
 
-      library.aliases[path] = module.name
+      library.setPath(path, module.name)
     }
 
     return library._getSingleton(path)

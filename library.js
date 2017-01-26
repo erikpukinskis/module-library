@@ -334,12 +334,16 @@ module.exports = function(StringTree) {
     }
 
   var generating = {}
+  var generationStack = []
 
   Library.prototype._generateSingleton =
     function(module) {
+      generationStack.push(module.name)
+
       if (generating[module.name]) {
-        throw new Error("Tried to generate "+module.name+" while generating "+module.name+". Seems an infinite loop?")
+        throw new Error("Tried to generate "+module.name+" while generating "+module.name+". Seems an infinite loop? Stack: "+generationStack.join(" → "))
       }
+
       generating[module.name] = true
       var deps = []
 
@@ -366,6 +370,8 @@ module.exports = function(StringTree) {
       this.singletonCache[module.name] = singleton
 
       generating[module.name] = false
+      generationStack.pop()
+
       return singleton
     }
 

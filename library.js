@@ -440,9 +440,6 @@ module.exports = function(StringTree) {
     }
 
   Library.prototype.setPath = function(path, name) {
-    if (path != "./" && !path.match(name)) {
-      throw new Error("Module name "+name+" doesn't seem like a substring of path "+path)
-    }
     this.aliases[path] = name
   }
 

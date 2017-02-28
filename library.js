@@ -318,10 +318,12 @@ module.exports = function(StringTree) {
       }
 
       for(var i=0; i<Library.loaders.length; i++) {
+
         var singleton = Library.loaders[i](
           alternateRequire || this.require,
           identifier,
-          this
+          this,
+          forName
         )
 
         if (singleton) {

@@ -77,7 +77,7 @@ Library.prototype.export =
   }
 
 Library.useLoader(
-  function(require, identifier, library) {
+  function(require, identifier, library, forName) {
     if (!require) {
       throw new Error("o")
     }
@@ -89,6 +89,10 @@ Library.useLoader(
     } catch (e) {
 
       var notFound = e.code == "MODULE_NOT_FOUND" 
+
+      if (forName) {
+        e.message += ". We were trying to load it for "+forName
+      }
 
       var probablyPackage = !identifier.match(/[\.\/]/)
 

@@ -46,6 +46,49 @@ module.exports = library.export(
 )
 ```
 
+## Dependencies inside your module
+
+If you want to maintain good encapsulation but only export one module, you can define as many extra modules as you like:
+
+```javascript
+
+library.define(
+  "hot-dog-stand/inventory",
+  function() {
+    return function stock(item) {
+      if (isPerishable(item)) {}
+      ...
+    }
+  }
+)
+
+library.define(
+  "hot-dog-stand/triage",
+  function() {
+    return function expedite(order) {
+      var lowPri = lowestDollarValueCustomer()
+      order.position = lowPri.position
+      lowPri.position = 1000
+    }
+  }
+)
+```
+
+And then require them from the module you're exporting:
+
+```javascript
+module.exports = library.export(
+  "hot-dog-stand",
+  ["hot-dog-stand/triage", "hot-dog-stand/inventory", ...],
+  function(stock, expedite, ...) {
+    openProcess(function(deliveries) {
+      if (deliveries.length > 0) { stock(deliveries[0]) }
+    })
+    ...
+  }
+)
+```
+
 ## Why
 
 * We have an explicit reference, in software, of which dependencies are needed for a piece of code. This makes it easy to load that code in other places, like in the browser, without any kind of elaborate, declarative, filesystem-based, side-effect ridden build process. See [bridge-module](https://github.com/erikpukinskis/bridge-module)

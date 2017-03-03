@@ -110,7 +110,7 @@ Library.useLoader(
         e.message += " (Is it in your node_modules folder? Does the \"main\" attribute in the package.json point to the right file?)"
       }
 
-      e.message += "The library knows about singletons "+Object.keys(library.singletonCache)+" and modules "+Object.keys(library.modules)
+      e.message += "The library knows about modules "+Object.keys(library.modules)
 
       throw e
     }

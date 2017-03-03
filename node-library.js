@@ -1,3 +1,8 @@
+
+if (Error.stackTraceLimit == 10) {
+  Error.stackTraceLimit = 100
+}
+
 var generateConstructor = require("./library")
 
 var Tree = require("string-tree")
@@ -104,6 +109,8 @@ Library.useLoader(
 
         e.message += " (Is it in your node_modules folder? Does the \"main\" attribute in the package.json point to the right file?)"
       }
+
+      e.message += "The library knows about singletons "+Object.keys(library.singletonCache)+" and modules "+Object.keys(library.modules)
 
       throw e
     }

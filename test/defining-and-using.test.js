@@ -50,10 +50,13 @@ runTest(
 
   function(expect, done) {
     var library = new Library()
-    var count = 0
+    var total = {count: 0}
 
     library.define("foo", 
-      function() { return count++ }
+      function() {
+        total.count++
+        return {}
+      }
     )
 
     library.using(["foo"], 
@@ -64,7 +67,7 @@ runTest(
       function() {}
     )
 
-    expect(count).to.equal(1)
+    expect(total.count).to.equal(1)
     done()
   }
 )

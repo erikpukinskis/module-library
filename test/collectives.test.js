@@ -18,7 +18,7 @@ runTest(
       function(collective) {
         expect(collective.flights).to.be.empty
         done()
-        return true
+        return {}
       }
     )
 
@@ -271,9 +271,9 @@ runTest(
     var library = new Library()
 
 
-    library.define("a", function() { return true })
+    library.define("a", function() { return {} })
 
-    library.define("b", ["c"], function() { return true })
+    library.define("b", ["c"], function() { return {} })
 
     library.define("c", ["a"],
       function() {

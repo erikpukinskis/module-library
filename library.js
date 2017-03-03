@@ -365,10 +365,11 @@ module.exports = function(StringTree) {
       var isUndefined = typeof singleton == "undefined"
       var isFunction = typeof singleton == "function"
       var isObject = typeof singleton == "object"
+      var isString = typeof singleton == "string"
 
       if (isUndefined) {
         throw new Error("The generator for "+module.name+" didn't return anything.")
-      } else if (!isFunction && !isObject) {
+      } else if (!isFunction && !isObject && !isString) {
         throw new Error("Modules need to return either a function or an object, so that we can stick some bookkeeping attributes on it. Your module "+module.name+" returned an "+(typeof singleton)+": "+singleton)
       }
 

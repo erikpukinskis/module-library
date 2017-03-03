@@ -1,6 +1,6 @@
 
 if (Error.stackTraceLimit == 10) {
-  Error.stackTraceLimit = 100
+  Error.stackTraceLimit = 20
 }
 
 var generateConstructor = require("./library")

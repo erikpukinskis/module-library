@@ -1,6 +1,7 @@
+var path = require("path")
 
 if (Error.stackTraceLimit == 10) {
-  Error.stackTraceLimit = 20
+  Error.stackTraceLimit = 30
 }
 
 var generateConstructor = require("./library")
@@ -81,8 +82,19 @@ Library.prototype.export =
     return singleton
   }
 
+try {
+  var dir = __dirname
+  var fullPath = path.join(__dirname, "..", "..", "package.json")
+  var package = require(fullPath)
+} catch (e) {} 
+
 Library.useLoader(
   function(require, identifier, library, forName) {
+
+    if (package && identifier == package.name && package.main) {
+      identifier = "./"+package.main
+    }
+    
     if (!require) {
       throw new Error("o")
     }
@@ -160,7 +172,6 @@ function processCommonJsSingleton(path, singleton, library) {
   }
 
 }
-
 
 
 Library.require = require

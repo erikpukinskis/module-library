@@ -9,6 +9,31 @@ var generateConstructor = require("./library")
 var Tree = require("string-tree")
 var Library = generateConstructor(Tree)
 
+global._wtf = 
+  function wtf(whatnot) {
+    if (typeof whatnot == "function") {
+      return whatnot.toString()
+    } else if (typeof whatnot == "object") {
+      if (Array.isArray(whatnot)) {
+        return JSON.stringify(whatnot)
+      }
+      var keys = Object.keys(whatnot)
+      for(var key in whatnot) {
+        keys.push(key)
+      }
+      return "[ object "+whatnot.constructor.name+" with keys "+keys.join(", ")+" ]"
+    } else {
+      return JSON.stringify(whatnot)
+    }
+  }
+
+global._wtf.json =
+  function wtfjson(whatnot) {
+    console.log(JSON.stringify(whatnot, null, 2))
+  }
+
+
+
 // Debugging
 
 Library.prototype.dump = function(logger) {
@@ -108,7 +133,7 @@ Library.useLoader(
       var notFound = e.code == "MODULE_NOT_FOUND" 
 
       if (forName) {
-        e.message += ". We were trying to load it for "+forName
+        e.message += ". Error happened while we were trying to load "+identifier+" for "+forName
       }
 
       var probablyPackage = !identifier.match(/[\.\/]/)

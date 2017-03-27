@@ -120,10 +120,6 @@ Library.useLoader(
       identifier = "./"+package.main
     }
     
-    if (!require) {
-      throw new Error("o")
-    }
-
     try {
 
       var singleton = require(identifier)

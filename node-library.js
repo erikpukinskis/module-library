@@ -19,7 +19,9 @@ global._wtf =
       }
       var keys = Object.keys(whatnot)
       for(var key in whatnot) {
-        keys.push(key)
+        if (keys.indexOf(key) == -1) {
+          keys.push(key)
+        }
       }
       console.log("[ object "+whatnot.constructor.name+" with keys "+keys.join(", ")+" ]")
     } else {

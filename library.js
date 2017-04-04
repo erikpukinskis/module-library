@@ -293,6 +293,10 @@ module.exports = function(StringTree) {
       return this.singletonCache[name] || this._generateSingleton(this.modules[name])
     }
 
+  Library.prototype.getSource = function(name) {
+    return this.get(name).__nrtvModule.func.toString()
+  }
+
   Library.prototype._getSingleton =
     function (identifier, alternateRequire, forName) {
       if (identifier.__dependencyType == "self reference") {

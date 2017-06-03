@@ -12,7 +12,7 @@ var Library = generateConstructor(Tree)
 global._wtf = 
   function wtf(whatnot) {
     if (typeof whatnot == "function") {
-      console.log(whatnot.toString())
+      return whatnot.toString()
     } else if (typeof whatnot == "object") {
       if (Array.isArray(whatnot)) {
         return JSON.stringify(whatnot)
@@ -23,15 +23,15 @@ global._wtf =
           keys.push(key)
         }
       }
-      console.log("[ object "+whatnot.constructor.name+" with keys "+keys.join(", ")+" ]")
+      return "[ object "+whatnot.constructor.name+" with keys "+keys.join(", ")+" ]"
     } else {
-      console.log(JSON.stringify(whatnot))
+      return JSON.stringify(whatnot)
     }
   }
 
-global._wtf.json =
-  function wtfjson(whatnot) {
-    console.log(JSON.stringify(whatnot, null, 2))
+global._wtf.log =
+  function wtflog(whatnot) {
+    console.log(_wtf(whatnot))
   }
 
 

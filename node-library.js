@@ -170,7 +170,7 @@ function processCommonJsSingleton(path, singleton, library) {
 
     if (module.name != path) {
 
-      var pathIsAName = !path.match(/\//)
+      var pathIsAName = !path.match(/\//) && path != "."
 
       if (pathIsAName) {
         console.log(" ⚡ WARNING ⚡ The commonjs module", path, "returned a module-library module called", module.name)

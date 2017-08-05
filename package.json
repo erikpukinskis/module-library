@@ -1,6 +1,6 @@
 {
   "name": "module-library",
-  "version": "0.71.0",
+  "version": "0.72.0",
   "description": "Caches module singletons and orchestrates dependencies between them",
   "main": "node-library.js",
   "dependencies": {

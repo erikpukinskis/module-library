@@ -122,9 +122,14 @@ Library.useLoader(
       identifier = "./"+package.main
     }
     
+    if (identifier.substr(0,2) == "./") {
+      var consumer = library.modules[forName]
+      var consumerRequire = consumer && consumer.require
+    }
+
     try {
 
-      var singleton = require(identifier)
+      var singleton = (consumerRequire || require)(identifier)
 
     } catch (e) {
 

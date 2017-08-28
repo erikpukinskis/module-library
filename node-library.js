@@ -124,8 +124,8 @@ Library.useLoader(
     
     try {
 
-      if (identifier[0] == ".") {
-        var singleton = require(__dirname + "/"+identifier)
+      if (identifier.substr(0,2) == "./") {
+        var singleton = require(__dirname + "/"+identifier.substr(2))
       } else {
         var singleton = require(identifier)
       }

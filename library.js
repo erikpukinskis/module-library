@@ -287,13 +287,14 @@ module.exports = function(StringTree) {
 
   Library.prototype.getModule =
     function(name) {
-      if (!this.modules[name]) {
-        throw new Error("Tried to get a library module called "+name+" but couldn't find any with that name")
-      }
       return this.modules[name]
     }
 
   Library.prototype.get = function(name) {
+      if (!this.modules[name]) {
+        throw new Error("Tried to get a library module called "+name+" but couldn't find any with that name")
+      }
+
       return this.singletonCache[name] || this._generateSingleton(this.getModule(name))
     }
 

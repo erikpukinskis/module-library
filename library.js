@@ -285,16 +285,20 @@ module.exports = function(StringTree) {
       return args
     }
 
-  Library.prototype.get =
+  Library.prototype.getModule =
     function(name) {
       if (!this.modules[name]) {
-        throw new Error("Tried to library.get a module called "+name+" but couldn't find any with that name")
+        throw new Error("Tried to get a library module called "+name+" but couldn't find any with that name")
       }
-      return this.singletonCache[name] || this._generateSingleton(this.modules[name])
+      return this.modules[name]
+    }
+
+  Library.prototype.get = function(name) {
+      return this.singletonCache[name] || this._generateSingleton(this.getModule(name))
     }
 
   Library.prototype.getSource = function(name) {
-    return this.get(name).__nrtvModule.func.toString()
+    return this.getModule(name).func.toString()
   }
 
   Library.prototype._getSingleton =

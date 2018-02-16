@@ -91,7 +91,7 @@ module.exports = library.export(
 
 ## Why
 
-* We have an explicit reference, in software, of which dependencies are needed for a piece of code. This makes it easy to load that code in other places, like in the browser, without any kind of elaborate, declarative, filesystem-based, side-effect ridden build process. See [bridge-module](https://github.com/erikpukinskis/bridge-module)
+* We have an explicit reference, in software, of which dependencies are needed for a piece of code. This makes it easy to load that code in other places, like in the browser (see [bridge-module](https://github.com/erikpukinskis/bridge-module)), without any kind of elaborate, declarative, filesystem-based, side-effect ridden build process.
 
 * We can pause and debug any part of the module loading process in the same process as our app
 

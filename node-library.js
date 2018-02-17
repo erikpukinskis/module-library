@@ -98,7 +98,7 @@ Library.prototype._dump = function(isRoot) {
 // Exports
 
 Library.prototype.export =
-  function(name) {
+  function() {
 
     var module = this.define.apply(this, arguments)
 

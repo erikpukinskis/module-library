@@ -7,6 +7,7 @@ module.exports = function(StringTree) {
 
   function Library() {
     this.id = "library@f"+randomId()
+    this.sandbox = {__moduleLibrary: this.id}
     this.root = this
     this.children = []
     this.modules = {}
@@ -369,7 +370,7 @@ module.exports = function(StringTree) {
         )
       }
 
-      var singleton = module.func.apply(null, deps)
+      var singleton = module.func.apply(this.sandbox, deps)
 
       var isUndefined = typeof singleton == "undefined"
       var isFunction = typeof singleton == "function"

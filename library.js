@@ -227,7 +227,7 @@ module.exports = function(StringTree) {
     function() {
       var tree = new StringTree()
 
-      for(name in this.modules) {
+      for(var name in this.modules) {
         tree.add(
           name,
           this._dealiasedDependencies(

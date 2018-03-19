@@ -132,6 +132,12 @@ module.exports = function(StringTree) {
   Library.prototype.using =
     function(dependencies, func) {
 
+      if (typeof dependencies == "function") {
+        func = dependencies
+        func.call(this.sandbox)
+        return
+      }
+
       // First we're going to check which of the dependencies need to have their collectives reset:
 
       var collectiveResets = []
@@ -185,7 +191,7 @@ module.exports = function(StringTree) {
 
       // At this point we have a properly reset library, and the dependencies should just be module names and collective IDs, so we just iterate through the dependencies and build the singletons.
 
-      return func.apply(null, library._getArguments(dependencies, func))
+      return func.apply(library.sandbox, library._getArguments(dependencies, func))
     }
 
   Library.prototype._assertNoCollectivizedAncestors = function(ancestors, child, resets) {

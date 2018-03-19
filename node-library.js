@@ -212,14 +212,28 @@ function libraryFactory(alternateRequire) {
     throw new Error("You need to pass require to module-library. Like this: var library = require(\"module-library\")(require)")
   }
 
-  var newLibrary = alternateRequire.__nrtvLibrary
+  var boundFunc = alternateRequire.__nrtvModuleFunction
 
-  if (!newLibrary) {
-    newLibrary = alternateRequire.__nrtvLibrary = library.clone()
+  if (!boundFunc) {
+    var newLibrary = library.clone()
     newLibrary.require = alternateRequire
+    
+    boundFunc = newLibrary.define.bind(newLibrary)
+
+    boundFunc.define = boundFunc
+
+    boundFunc.using = newLibrary.using.bind(newLibrary)
+
+    boundFunc.run = boundFunc.using
+
+    boundFunc.export = newLibrary.export.bind(newLibrary)
+
+    boundFunc.collective = newLibrary.collective.bind(newLibrary)
+
+    alternateRequire.__nrtvModuleFunction = boundFunc
   }
 
-  return newLibrary
+  return boundFunc
 }
 
 libraryFactory.Library = Library

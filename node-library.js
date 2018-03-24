@@ -233,6 +233,8 @@ function libraryFactory(alternateRequire) {
 
     boundFunc.export = newLibrary.export.bind(newLibrary)
 
+    boundFunc.ref = newLibrary.ref.bind(newLibrary)
+
     alternateRequire.__nrtvModuleFunction = boundFunc
   }
 

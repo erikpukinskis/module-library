@@ -30,8 +30,13 @@ global._wtf =
   }
 
 global._wtf.log =
-  function wtflog(whatnot) {
+  function consoleLogWtfSomethingIs(whatnot) {
     console.log(_wtf(whatnot))
+  }
+
+global._wtf.json =
+  function consoleLogSomethingToJSON(whatnot) {
+    console.log(JSON.stringify(whatnot, null, 2))
   }
 
 

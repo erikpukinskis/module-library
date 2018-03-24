@@ -47,61 +47,6 @@ runTest(
   }
 )
 
-runTest(
-  "resets work for modules exported through commonjs",
-
-  function(expect, done) {
-    var library = new Library()
-
-    library.using(
-      ["./flower", "./seed"],
-      function(Flower, seed) {
-        new Flower("Danube")
-        expect(seed.sprouts()).to.have.members(["Danube P. Sprout"])
-      }
-    )
-
-    // we weren't resetting "seed" before when we try to reset "./seed". That suggests to me that now flower and seed have different seed singletons.
-
-    library.using(
-      [
-        "./flower",
-        library.reset("./seed")
-      ],
-      function(Flower, seed) {
-        new Flower("Daryl")
-        expect(seed.sprouts()).to
-        .have.members([
-          "Daryl P. Sprout"
-        ])
-
-        done()
-      }
-    )
-  }
-)
-
-
-
-runTest(
-  "you can reset a module before using its neighbors",
-
-  function(expect, done) {
-    var library = new Library()
-
-    library.using(
-      [
-        "./flower",
-        library.reset("./seed")
-      ],
-      function(Flower, seed) {
-        done()
-      }
-    )
-  }
-)
-
-
 
 runTest(
   "external require functions",

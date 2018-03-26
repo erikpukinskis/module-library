@@ -31,7 +31,7 @@ module.exports = function(StringTree) {
     function(name, two, three) {
       if (three) {
         var func = three
-        var dependencies = two
+        var dependencies = scrubDependencies(two)
       } else {
         var func = two
         var dependencies = []
@@ -85,8 +85,20 @@ module.exports = function(StringTree) {
     return fresh
   }
 
+  function scrubDependencies(deps) {
+    for(var i=0; i<deps.length; i++) {
+      if (deps[i].__isNrtvLibrary) {
+        deps[i] = Library.prototype.ref()
+      }
+    }
+      
+    return deps
+  }
+
   Library.prototype.using =
     function(dependencies, func) {
+
+      scrubDependencies(dependencies)
 
       if (typeof dependencies == "function") {
         func = dependencies
@@ -152,7 +164,7 @@ module.exports = function(StringTree) {
       var args = []
 
       for(var i=0; i<dependencies.length; i++) {
-
+        
         var singleton = this._getSingleton(dependencies[i])
 
         var isObject = typeof singleton == "object"

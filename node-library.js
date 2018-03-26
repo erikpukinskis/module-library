@@ -7,6 +7,7 @@ if (Error.stackTraceLimit == 10) {
 var generateConstructor = require("./library")
 
 var Tree = require("string-tree")
+
 var Library = generateConstructor(Tree)
 
 global._wtf = 
@@ -239,6 +240,8 @@ function libraryFactory(alternateRequire) {
 
   if (alternateModule) {
     boundFunc = exportLibraryModule.bind(null, alternateModule, newLibrary)
+    boundFunc.checkOut = newLibrary.using.bind(newLibrary)
+    boundFunc.__isNrtvLibrary = true
 
     alternateModule.__nrtvModuleFunction = boundFunc
 
@@ -250,6 +253,7 @@ function libraryFactory(alternateRequire) {
   boundFunc.using = newLibrary.using.bind(newLibrary)
   boundFunc.run = boundFunc.using
   boundFunc.export = newLibrary.export.bind(newLibrary)
+  boundFunc.__isNrtvLibrary = true
 
   alternateRequire.__nrtvModuleFunction = boundFunc
 

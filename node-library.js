@@ -211,6 +211,12 @@ Library.require = require
 var library = new Library()
 require.__nrtvLibrary = library
 
+function exportLibraryModule(moduleSingleton, localLibrary) {
+  var argumentsForDefine = Array.prototype.slice.call(arguments, 2)
+
+  moduleSingleton.exports = localLibrary.export.apply(localLibrary, argumentsForDefine)
+}
+
 function libraryFactory(alternateRequire) {
 
   if (!alternateRequire) {
@@ -219,24 +225,33 @@ function libraryFactory(alternateRequire) {
 
   var boundFunc = alternateRequire.__nrtvModuleFunction
 
-  if (!boundFunc) {
-    var newLibrary = library.clone()
-    newLibrary.require = alternateRequire
-    
-    boundFunc = newLibrary.define.bind(newLibrary)
-
-    boundFunc.define = boundFunc
-
-    boundFunc.using = newLibrary.using.bind(newLibrary)
-
-    boundFunc.run = boundFunc.using
-
-    boundFunc.export = newLibrary.export.bind(newLibrary)
-
-    boundFunc.ref = newLibrary.ref.bind(newLibrary)
-
-    alternateRequire.__nrtvModuleFunction = boundFunc
+  if (alternateRequire.require) {
+    var alternateModule = alternateRequire
+    alternateRequire = alternateModule.require
   }
+
+  if (boundFunc) {
+    return boundFunc
+  }
+
+  var newLibrary = library.clone()
+  newLibrary.require = alternateRequire
+
+  if (alternateModule) {
+    boundFunc = exportLibraryModule.bind(null, alternateModule, newLibrary)
+
+    alternateModule.__nrtvModuleFunction = boundFunc
+
+    return boundFunc
+  }
+
+  boundFunc = newLibrary.define.bind(newLibrary)
+  boundFunc.define = boundFunc
+  boundFunc.using = newLibrary.using.bind(newLibrary)
+  boundFunc.run = boundFunc.using
+  boundFunc.export = newLibrary.export.bind(newLibrary)
+
+  alternateRequire.__nrtvModuleFunction = boundFunc
 
   return boundFunc
 }

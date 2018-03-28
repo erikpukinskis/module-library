@@ -158,7 +158,7 @@ Library.useLoader(
         e.message += " (Is it in your node_modules folder? Does the \"main\" attribute in the package.json point to the right file?)"
       }
 
-      e.message += "\n\n    The module-library knows about the following modules: "+andAnd(Object.keys(library.modules))+"\n"
+      e.message += "\n\n    "+library.contents()+"\n"
 
       throw e
     }
@@ -169,16 +169,6 @@ Library.useLoader(
 
   }
 )
-
-function andAnd(items) {
-  if (items.length < 1) {
-    return "none"
-  } else if (items.length < 2) {
-    return ""+items[0]
-  } else {
-    return items.slice(0, items.length-1).join(", ")+" and "+items[items.length-1]
-  }
-}
 
 function processCommonJsSingleton(path, singleton, library) {
 

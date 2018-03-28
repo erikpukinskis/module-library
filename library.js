@@ -195,7 +195,25 @@ module.exports = function(StringTree) {
     }
 
   Library.prototype.getSource = function(name) {
-    return this.getModule(name).func.toString()
+    var module = this.getModule(name)
+    if (!module) {
+      throw new Error("Can't get source for \""+name+"\" because it's not in the library. "+this.contents())
+    }
+    return module.func.toString()
+  }
+
+   Library.prototype.contents = function () {
+    return "The module-library knows about the following modules: "+andAnd(Object.keys(this.modules))
+  }
+
+  function andAnd(items) {
+    if (items.length < 1) {
+      return "none"
+    } else if (items.length < 2) {
+      return ""+items[0]
+    } else {
+      return items.slice(0, items.length-1).join(", ")+" and "+items[items.length-1]
+    }
   }
 
   Library.prototype._getSingleton =

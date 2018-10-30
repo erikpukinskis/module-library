@@ -135,19 +135,22 @@ module.exports = function(StringTree) {
       return tree
     }
 
+  Library.prototype.dealias = function(name) {
+    return this.aliases[name] || name
+  }
+
   Library.prototype._dealiasedDependencies =
     function(possiblyAliased) {
       var dependencies = []
       var aliases = this.aliases
+      var library = this
 
       possiblyAliased.map(
         function(dependency) {
 
           if (typeof(dependency) != "string") { return }
 
-          var alias = aliases[dependency]
-
-          dependencies.push(alias || dependency)
+          dependencies.push(library.dealias(dependency))
         }
       )
 

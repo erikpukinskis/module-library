@@ -255,6 +255,7 @@ function libraryFactory(alternateRequire) {
   boundFunc = newLibrary.define.bind(newLibrary)
   boundFunc.define = boundFunc
   boundFunc.dealias = newLibrary.dealias.bind(newLibrary)
+  boundFunc.get = newLibrary.get.bind(newLibrary)
   boundFunc.using = newLibrary.using.bind(newLibrary)
   boundFunc.run = boundFunc.using
   boundFunc.export = newLibrary.export.bind(newLibrary)

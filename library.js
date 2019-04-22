@@ -4,9 +4,17 @@
 
 
 module.exports = function(StringTree) {
+  var inBrowser = typeof window != "undefined"
+  var libraryCount = 0
 
   function Library() {
+    if (inBrowser && libraryCount > 0) {
+      throw new Error("Trying to create a second library in the browser. That seems like an odd thing to do.") }
+
+    libraryCount++
     this.id = "library@f"+randomId()
+    console.log("Created module library "+this.id+" (#"+libraryCount+")")
+
     this.sandbox = {__moduleLibrary: this.id}
     this.root = this
     this.children = []

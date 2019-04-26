@@ -6,14 +6,29 @@
 module.exports = function(StringTree) {
   var inBrowser = typeof window != "undefined"
   var libraryCount = 0
+  var queue = []
 
   function Library() {
     if (inBrowser && libraryCount > 0) {
       throw new Error("Trying to create a second library in the browser. That seems like an odd thing to do.") }
 
     libraryCount++
+
     this.id = "library@f"+randomId()
-    console.log("Created module library "+this.id+" (#"+libraryCount+")")
+
+    var batchingLogs = libraryCount > 1
+  
+    if (batchingLogs) {
+      queue.push(this.id)
+    }
+
+    var batchComplete = queue.length == 10
+
+    if (batchComplete) {
+      console.log("more module-libraries created: \n    "+queue.join("\n    "))
+    } else if (!batchingLogs) {
+      console.log("module-library created: "+this.id)
+    }
 
     this.sandbox = {__moduleLibrary: this.id}
     this.root = this

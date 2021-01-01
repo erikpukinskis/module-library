@@ -105,5 +105,36 @@ runTest(
 )
 
 
+runTest(
+  "getting references to libraries and modules",
+
+  function(expect, done) {
+    var library = new Library()
+
+    library.define("books",
+      function() {
+        return "are for reading"
+      }
+    )
+
+    library.using(
+      [library.ref()],
+      function(lib) {
+        expect(lib).to.have.property("__isLibraryRef", true)
+
+        // This doesn't work, but I'm not really trying to differentiate that carefully between different libraries yet. I think in the long term we're going to want these ids (and the corresponding modules)to match:
+        // expect(lib.library.id).to.equal(library.id)
+
+        expect(lib.module("books")).to.have.property("__isLibraryRef", true)
+
+        expect(lib.module("books")).to.have.property("moduleName", "books")
+
+        done()
+      }
+    )
+  }
+)
+
+
 
 

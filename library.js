@@ -17,7 +17,7 @@ module.exports = function(StringTree) {
     this.id = "library@f"+randomId()
 
     var batchingLogs = libraryCount > 1
-  
+
     if (batchingLogs) {
       queue.push(this.id)
     }
@@ -47,7 +47,7 @@ module.exports = function(StringTree) {
   }
 
   function randomId() {
-    return Math.random().toString(36).split(".")[1].substr(0,4)  
+    return Math.random().toString(36).split(".")[1].substr(0,4)
   }
 
   Library.prototype.define =
@@ -114,7 +114,7 @@ module.exports = function(StringTree) {
         deps[i] = Library.prototype.ref()
       }
     }
-      
+
     return deps
   }
 
@@ -190,7 +190,7 @@ module.exports = function(StringTree) {
       var args = []
 
       for(var i=0; i<dependencies.length; i++) {
-        
+
         var singleton = this._getSingleton(dependencies[i])
 
         var isObject = typeof singleton == "object"
@@ -242,11 +242,21 @@ module.exports = function(StringTree) {
     }
   }
 
+  function LibraryRef(library, moduleName) {
+    this.__isLibraryRef = true
+    this.library = library
+    this.moduleName = moduleName
+  }
+
+  LibraryRef.prototype.module = function module(moduleName) {
+    return new LibraryRef(this.library, moduleName)
+  }
+
   Library.prototype._getSingleton =
     function (identifier, alternateRequire, forName) {
       if (identifier.__dependencyType == "self reference") {
 
-        return this
+        return new LibraryRef(this)
 
       } else if (identifier in this.singletonCache) {
 
